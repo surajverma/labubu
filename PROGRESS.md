@@ -6,9 +6,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | Milestone | State |
 |---|---|
 | 1. Skeleton, CI, keystore | done |
+| 2. One beautiful character | done — `docs/screens/m2-*.png` |
 
 ## Next
-- Milestone 2: one beautiful character.
+- Milestone 3: generator (all Phase 1 parts, palettes, rules, seeds, tests, contact sheet).
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
@@ -24,6 +25,16 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   happens on a feature branch and the owner should still get APKs.
 - Seed codes: 8 chars `XXXX-XXXX` from a 32-char alphabet without 0/1/I/O (40 bits).
   Input normalisation reads I/1 as L. PRNG: sfc32 seeded by a cyrb128-style string hash.
+
+- Rendering: `MeshPhysicalMaterial` vinyl with clearcoat, RoomEnvironment PMREM for
+  reflections, NeutralToneMapping, hemisphere + key + fill + rim lights, baked radial
+  contact shadow. Heads/bodies are deformed spheres (`blobGeometry`) so outfits/hats can be
+  exact shells of the same shape.
+- Face = a "drum" decal: UV v is the angle around the head's X axis, so scrolling the
+  texture is a real drum rotation (like the physical face-changing toy). 4 cells per drum;
+  blink swaps to a half-res blink texture (no re-upload).
+- Thumbnails/snapshots render to the main canvas and copy in the same task (render
+  targets would skip tone mapping).
 
 ## Open problems
 - none
