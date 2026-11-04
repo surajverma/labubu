@@ -9,9 +9,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 2. One beautiful character | done — `docs/screens/m2-*.png` |
 | 3. Generator | done — `docs/screens/m3-contact-sheet.png`, `m3-parts-*.png` |
 | 4. Spin + blind box + rarity, haptics, sounds | done — `docs/screens/m4-*.png` |
+| 5. Collection, sets, save, export/import, settings | done — smoke test `npm run build && npm run smoke` |
 
 ## Next
-- Milestone 5: collection book, sets, save data, export/import, settings (screens exist; verify + smoke test).
+- Milestone 6: Phase 1 polish (transitions, performance + quality benchmark, icon/splash, README), tag v0.1.0.
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session

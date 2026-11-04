@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "SpinBuddies — a collectible blind-box vinyl toy app",
+  "description": "SpinBuddies \u2014 a collectible blind-box vinyl toy app",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
