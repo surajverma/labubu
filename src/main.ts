@@ -1,29 +1,52 @@
-import { Stage } from './render/stage';
-import { buildCharacter } from './render/character';
-import { buildBackdrop } from './render/scenes';
-import { MASCOT } from './gen/mascot';
-import type { CharacterSpec } from './gen/types';
+import './ui/styles.css';
+import { App } from './ui/app';
+import { HomeScreen } from './ui/screens/home';
+import { BoxScreen } from './ui/screens/box';
+import { CollectionScreen } from './ui/screens/collection';
+import { DetailScreen } from './ui/screens/detail';
+import { SettingsScreen } from './ui/screens/settings';
+import { SETS, setProgress } from './game/sets';
+import { specFor } from './game/game';
+import { sfx } from './audio/sfx';
+import { haptic } from './platform';
 
-import { runDev } from './dev';
+async function boot(): Promise<void> {
+  const params = new URLSearchParams(location.search);
+  const dev = params.get('dev');
+  if (dev) {
+    const { runDev } = await import('./dev');
+    runDev(dev, params);
+    return;
+  }
+  const app = new App(document.getElementById('app')!);
+  app.register('home', () => new HomeScreen(app));
+  app.register('box', () => new BoxScreen(app));
+  app.register('collection', () => new CollectionScreen(app));
+  app.register('detail', () => new DetailScreen(app));
+  app.register('settings', () => new SettingsScreen(app));
 
-// Temporary look-dev entry (Milestone 2). Query: ?spec=<json> overrides the mascot.
-const devMode = new URLSearchParams(location.search).get('dev');
-if (devMode) runDev(devMode, new URLSearchParams(location.search));
-else lookdev();
+  // Set completion → badge (+ coins from Phase 2).
+  app.game.hooks.push((g, reason) => {
+    if (reason !== 'box' && reason !== 'gift' && reason !== 'order' && reason !== 'import') return;
+    const specs = g.save.collection.map(specFor);
+    for (const set of SETS) {
+      if (set.since > g.contentVersion || g.save.badges.includes(set.id)) continue;
+      if (setProgress(set, specs).done) {
+        g.save.badges.push(set.id);
+        if (reason !== 'import') {
+          setTimeout(() => {
+            app.toast(`${set.icon} Set complete: ${set.name}!`);
+            sfx.fanfare('epic');
+            haptic.success();
+          }, 1800);
+        }
+      }
+    }
+  });
 
-function lookdev(): void {
-const canvas = document.createElement('canvas');
-canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;display:block';
-document.getElementById('app')!.appendChild(canvas);
-const stage = new Stage(canvas);
-const params = new URLSearchParams(location.search);
-const spec: CharacterSpec = params.get('spec') ? { ...MASCOT, ...JSON.parse(params.get('spec')!) } : MASCOT;
-stage.setBackdrop(buildBackdrop(spec.scene));
-const rig = buildCharacter(spec);
-stage.turntable.add(rig.root);
-rig.root.rotation.y = Number(params.get('rot') ?? 0);
-stage.frame(rig.height * 1.15, 2.1, rig.height * 0.5, 0);
-stage.onFrame((dt, t) => rig.update(dt, t));
-stage.start();
-(window as unknown as { __ready: boolean }).__ready = true;
+  await app.start();
+  (window as unknown as { __app: App; __ready: boolean }).__app = app;
+  (window as unknown as { __ready: boolean }).__ready = true;
 }
+
+void boot();

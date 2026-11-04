@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { CharacterSpec, FaceSpec } from '../gen/types';
+import { TUNABLES } from '../config';
 import { blobGeometry, capsule } from './geometry';
 import { MaterialKit } from './materials';
 import { BODY_SHAPES, HEAD_SHAPES, SMALL_BODIES } from './shapes';
@@ -257,7 +258,7 @@ export function buildCharacter(
       if (spin) {
         spin.t += dt * 1000;
         const k = Math.min(1, spin.t / spin.dur);
-        const e = easeOutBack(k, 1.1);
+        const e = easeOutBack(1 - Math.pow(1 - k, 1.6), 1.15);
         const a = spin.a0 + (spin.a1 - spin.a0) * e;
         drum.setAngle(a);
         const cell = Math.round(a / step);
@@ -308,7 +309,7 @@ export function buildCharacter(
       const a0 = drum.currentAngle;
       const a1 = Math.round(a0 / step) * step - o.direction * passes * step;
       return new Promise<void>((resolve) => {
-        spin = { a0, a1, t: 0, dur: o.durationMs ?? 1100, lastCell: Math.round(a0 / step), opts: o, resolve, landed: false };
+        spin = { a0, a1, t: 0, dur: o.durationMs ?? TUNABLES.spinDurationMs, lastCell: Math.round(a0 / step), opts: o, resolve, landed: false };
       });
     },
     isSpinning: () => spin !== null,

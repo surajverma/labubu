@@ -8,9 +8,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 1. Skeleton, CI, keystore | done |
 | 2. One beautiful character | done — `docs/screens/m2-*.png` |
 | 3. Generator | done — `docs/screens/m3-contact-sheet.png`, `m3-parts-*.png` |
+| 4. Spin + blind box + rarity, haptics, sounds | done — `docs/screens/m4-*.png` |
 
 ## Next
-- Milestone 4: spin + blind box + rarity, haptics, sounds (and the real app shell/UI).
+- Milestone 5: collection book, sets, save data, export/import, settings (screens exist; verify + smoke test).
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
@@ -49,6 +50,16 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 - Some sideways "pointy" ears were reshaped (short, upswept) to avoid resembling a famous
   film character; hats/ears/outfits/accessories each have a review sheet
   (`?dev=parts&layer=hat`).
+
+- **Blind boxes draw from a finite numbered series pool** (Series 1 = 1,000 buddies, tier
+  quotas exactly = stated odds: 600/280/100/18/2). With 40-bit random seeds exact duplicates
+  would never happen, which would break the spec's duplicates/recycling economy. Home
+  "Everything" spins and Order challenges still use the full seed space ("millions").
+- UI is plain TS + CSS (no framework). One shared WebGL `Stage`; screens borrow it.
+  Thumbnails: rendered one per frame, cached in IndexedDB (`THUMB_VERSION` in
+  `src/ui/thumbs.ts` — bump when visuals change).
+- Display font: Fredoka (OFL-1.1) via `@fontsource/fredoka`; everything else system font.
+- Sounds are synthesised with WebAudio (no audio files, no licences needed).
 
 ## Open problems
 - none

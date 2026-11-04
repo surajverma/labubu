@@ -18,6 +18,6 @@ export const TUNABLES = {
   startingBoxes: 10,
   maxPixelRatio: 2,
   devMenuTaps: 7,
-  spinDurationMs: 1100,
+  spinDurationMs: 1450,
   thumbnailSize: 256,
 } as const;

@@ -368,6 +368,33 @@ export const SCENES: Record<string, SceneDef> = {
     },
   },
 
+  /** Not a character scene: the room where blind boxes are opened. */
+  boxroom: {
+    skyTop: '#ffcfe0',
+    skyBottom: '#fff1e6',
+    ground: '#ffe3d3',
+    fog: { color: '#fff1e6', near: 7, far: 16 },
+    build(c) {
+      ground(c, '#ffe3d3');
+      pedestal(c, '#ffffff', '#ffb3c7');
+      const arc = c.add(new THREE.CylinderGeometry(4.5, 4.5, 6, 48, 1, true, Math.PI * 0.75, Math.PI * 0.5), c.kit.prop('#ffd6e4', false), 0, 3, 0);
+      (arc.material as THREE.MeshStandardMaterial).side = THREE.BackSide;
+      // Floating confetti shapes in the background.
+      const cols = ['#ffd34d', '#7fd6ff', '#b89bff', '#ff8fb1', '#8fe39a'];
+      const shapes: THREE.Mesh[] = [];
+      for (let i = 0; i < 14; i++) {
+        const geo = i % 3 === 0 ? new THREE.OctahedronGeometry(0.09, 0) : i % 3 === 1 ? new THREE.TorusGeometry(0.08, 0.03, 6, 14) : new THREE.IcosahedronGeometry(0.08, 0);
+        const m = c.add(geo, c.kit.plastic(cols[i % cols.length]!, 0.3), (c.rng() - 0.5) * 5, 0.8 + c.rng() * 3, -1.5 - c.rng() * 2.5);
+        shapes.push(m);
+      }
+      c.updaters.push((t) => shapes.forEach((m, i) => {
+        m.rotation.x = t * 0.5 + i;
+        m.rotation.y = t * 0.7 + i;
+        m.position.y += Math.sin(t * 1.3 + i) * 0.002;
+      }));
+    },
+  },
+
   // --- Phase 2 ---
   desert: {
     skyTop: '#ffb870',

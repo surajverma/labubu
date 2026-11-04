@@ -145,6 +145,16 @@ export class Stage {
     this.applyFraming();
   }
 
+  /**
+   * Frame a subject so it fills the area between UI insets (in CSS px from top/bottom).
+   * `fill` = fraction of the free area the subject's height should take.
+   */
+  frameInsets(height: number, width: number, aimY: number, topPx: number, bottomPx: number, fill = 0.9): void {
+    const viewH = this.canvas.clientHeight || window.innerHeight;
+    const avail = Math.max(160, viewH - topPx - bottomPx);
+    this.frame((height / fill) * (viewH / avail), width, aimY, (bottomPx - topPx) / (2 * viewH));
+  }
+
   private applyFraming(): void {
     const vfov = THREE.MathUtils.degToRad(this.camera.fov);
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * this.camera.aspect);
@@ -210,7 +220,7 @@ export class Stage {
       const h = this.canvas.clientHeight || window.innerHeight;
       this.composer = new EffectComposer(this.renderer);
       this.composer.addPass(new RenderPass(this.scene, this.camera));
-      this.bloomPass = new UnrealBloomPass(new THREE.Vector2(w / 2, h / 2), strength, 0.6, 0.86);
+      this.bloomPass = new UnrealBloomPass(new THREE.Vector2(w / 2, h / 2), strength, 0.5, 0.92);
       this.composer.addPass(this.bloomPass);
       this.composer.addPass(new OutputPass());
       this.composer.setSize(w, h);
