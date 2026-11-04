@@ -4,6 +4,7 @@ import { loadSave, writeSave } from '../save/storage';
 import { newSave, type OwnedCharacter, type SaveData } from '../save/schema';
 import { drawBox, type BoxKind, type Draw } from './series';
 import { ECONOMY, recycleValue } from './economy';
+import { decodeGift, encodeGift, randomGiftId } from './gifts';
 import type { Rng } from '../rng';
 
 export function charKey(c: { seed: string; v: number; variant?: string }): string {
@@ -164,6 +165,30 @@ export class Game {
     }
     this.addCoins(total, 'recycle');
     return total;
+  }
+
+  /** Gifts one copy: removes it from the collection and returns the code to send. */
+  async gift(uidv: string): Promise<string | null> {
+    const o = this.find(uidv);
+    if (!o) return null;
+    const spec = specFor(o);
+    const code = await encodeGift({ seed: o.seed, v: o.v, variant: o.variant, rarity: spec.rarity, giftId: randomGiftId() });
+    this.removeOne(uidv);
+    this.save.stats.gifted++;
+    this.changed('gift-sent');
+    return code;
+  }
+
+  /** Redeems a gift code once per device. */
+  async redeem(code: string): Promise<{ ok: true; owned: OwnedCharacter; isNew: boolean } | { ok: false; message: string }> {
+    const r = await decodeGift(code);
+    if (!r.ok) return { ok: false, message: r.reason === 'format' ? 'That doesn’t look like a gift code.' : 'That code isn’t valid — check for typos.' };
+    if (this.save.redeemedGifts.includes(r.gift.giftId)) return { ok: false, message: 'This gift was already opened on this phone.' };
+    this.save.redeemedGifts.push(r.gift.giftId);
+    const { owned, isNew } = this.addCharacter({ seed: r.gift.seed, v: r.gift.v, variant: r.gift.variant }, 'gift');
+    this.save.stats.giftsReceived++;
+    this.changed('gift');
+    return { ok: true, owned, isNew };
   }
 
   /** Buys from the shop. Normal boxes go to your box pile; others are opened right away. */

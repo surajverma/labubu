@@ -48,3 +48,22 @@ describe('Game', () => {
     expect(g.save.premiumBoxes).toBe(0);
   });
 });
+
+describe('gifting', () => {
+  it('gift removes a copy; redeeming adds it once per device', async () => {
+    const a = game();
+    const b = game();
+    const e = getPool(1).byTier.rare[0]!;
+    a.addCharacter({ seed: e.seed, v: 1 }, 'box');
+    const code = (await a.gift(a.save.collection[0]!.uid))!;
+    expect(a.save.collection.length).toBe(0);
+    const r = await b.redeem(code);
+    expect(r.ok).toBe(true);
+    expect(b.save.collection[0]!.seed).toBe(e.seed);
+    expect(b.save.collection[0]!.source).toBe('gift');
+    const again = await b.redeem(code);
+    expect(again.ok).toBe(false);
+    expect(b.save.collection[0]!.count).toBe(1);
+    expect((await b.redeem('GIFT-NOPE-NOPE')).ok).toBe(false);
+  });
+});

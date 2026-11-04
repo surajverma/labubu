@@ -15,6 +15,7 @@ import { specFor } from './game/game';
 import { sfx } from './audio/sfx';
 import { haptic } from './platform';
 import './ui/features/economyUi';
+import './ui/features/gifts';
 import { checkDaily } from './ui/features/daily';
 
 async function boot(): Promise<void> {

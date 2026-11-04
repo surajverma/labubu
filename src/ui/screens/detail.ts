@@ -54,7 +54,7 @@ export class DetailScreen implements Screen {
     };
     this.render(o);
     // Leave room for the info card.
-    requestAnimationFrame(() => this.view.setInsets(70, this.card.offsetHeight + 30));
+    requestAnimationFrame(() => this.view.setInsets(76, this.card.offsetHeight + 30, 0.8));
   }
 
   leave(): void {

@@ -16,9 +16,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 9. Order challenge | done — `tests/orders.test.ts`, `docs/screens/m9-*.png`, tuning `npx vite-node scripts/tune-orders.ts` |
 | 10. Achievements, profile, Phase 2 content, seasons, themed boxes | done — `docs/screens/m10-*.png` |
 | 11. Phase 2 polish + balance, v0.2.0 | done — economy sim incl. sets/achievements ≈ 4.5 boxes/day |
+| 12. Share card + gift/trade codes | done — `tests/gifts.test.ts`, `docs/screens/m12-*.png` |
 
 ## Next
-- Milestone 12: share card + gift/trade codes (offline).
+- Milestone 13: Play Store readiness (AAB, icons, feature graphic, framed screenshots, store texts, privacy policy, Data Safety, accessibility), v0.3.0.
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
@@ -113,6 +114,14 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   ≈ 4.5 boxes/day over 30 days (steady ≈ 4, onboarding burst ≈ 8–10 on days 3–5). Set
   and achievement coins were scaled ×0.6, login coins 60→50, order multipliers
   [9,13,19], daily order 20/star.
+
+- Gift codes (`src/game/gifts.ts`): flags + seed + rarity + one-time gift id + variant data
+  + 32-bit truncated HMAC-SHA256, base32 (seed alphabet) in 4-char groups. The HMAC key
+  ships in the app (`VITE_GIFT_SECRET` can override at build time), so it rejects typos
+  and casual tampering but is not cheat-proof — "good enough for friends". Redeemed gift
+  ids are stored per device. Trade = two gifts (help sheet in Settings → Friends).
+- Share card: 1080×1350 PNG (buddy in its scene + name, rarity badge with icon, seed, app
+  name) via the native share sheet (Filesystem + Share), Web Share or download.
 
 ## Open problems
 - none
