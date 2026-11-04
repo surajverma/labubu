@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SpinBuddies</string>
+    <string name="title_activity_main">SpinBuddies</string>
+    <string name="package_name">com.spinbuddies.app</string>
+    <string name="custom_url_scheme">com.spinbuddies.app</string>
+</resources>
