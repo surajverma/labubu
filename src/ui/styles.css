@@ -788,3 +788,48 @@ body.reduce-motion .sheet,
 body.reduce-motion .toast {
   animation-duration: 0.01s;
 }
+
+/* --- Daily streak track --- */
+.streak {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin: 8px 0 4px;
+}
+.sday {
+  background: #fff;
+  border-radius: 14px;
+  padding: 8px 2px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(90, 40, 30, 0.08);
+  border: 2px solid transparent;
+}
+.sday .sicon {
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  height: 22px;
+}
+.sday .slabel {
+  font-size: 11px;
+  color: var(--ink2);
+  font-weight: 600;
+}
+.sday .sreward {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 12px;
+}
+.sday.prem .sicon {
+  color: var(--purple);
+}
+.sday.past {
+  opacity: 0.55;
+}
+.sday.past .sicon {
+  color: var(--green);
+}
+.sday.today {
+  border-color: var(--primary);
+  transform: scale(1.06);
+}

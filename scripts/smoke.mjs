@@ -23,6 +23,8 @@ try {
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto(`http://localhost:${PORT}/`);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 30000 });
+await page.waitForSelector('button:has-text("Collect!")', { timeout: 4000 }).then((b) => b.click()).catch(() => {});
+await page.waitForTimeout(400);
   console.log('✓ app loaded');
 
   await page.click('#tabbar [data-tab=box]');

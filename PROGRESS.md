@@ -12,9 +12,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 5. Collection, sets, save, export/import, settings | done — smoke test `npm run build && npm run smoke` |
 | 6. Phase 1 polish, icon/splash, README, v0.1.0 | done — perf check `node scripts/perf.mjs` |
 | 7. Coins, economy, recycling, shop | done — `tests/economy.test.ts`, `docs/screens/m7-*.png` |
+| 8. Daily boxes, streaks, notifications, clock guard | done — `tests/daily.test.ts`, `docs/screens/m8-*.png` |
 
 ## Next
-- Milestone 8: daily boxes, streaks, notifications, clock guard.
+- Milestone 9: Order challenge (lock/spin, scoring, 30 levels, solver, tutorial, daily order).
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
@@ -78,6 +79,13 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   with migration 1→2 and a test using a real v1 save.
 - Shop lives in the Boxes tab (sheet). Normal boxes bought go to the pile; Premium/Themed
   open immediately. Streak Premium boxes go to a separate premium pile.
+
+- Daily: claim sheet on start/foreground; local-midnight reset; one automatic streak
+  freeze per ISO week covers one missed day; clock guard = never grant when now <
+  maxSeenTime − 10 min. Notification permission is asked right after the first daily gift
+  is collected (never at first launch); a single one-shot reminder is (re)scheduled each
+  time (default 18:00, configurable, can be turned off). Daily login coins come with it.
+- CI concurrency queues runs instead of cancelling them.
 
 ## Open problems
 - none

@@ -14,6 +14,8 @@ page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 const shot = async (name, wait = 600) => { await page.waitForTimeout(wait); await page.screenshot({ path: `${out}/${prefix}-${name}.png` }); console.log('shot', name); };
 await page.goto('http://localhost:4173/');
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 30000 });
+await page.waitForSelector('button:has-text("Collect!")', { timeout: 4000 }).then((b) => b.click()).catch(() => {});
+await page.waitForTimeout(400);
 await shot('home', 1500);
 await page.click('#tabbar [data-tab=box]');
 await shot('box', 1200);

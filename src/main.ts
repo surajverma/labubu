@@ -10,6 +10,7 @@ import { specFor } from './game/game';
 import { sfx } from './audio/sfx';
 import { haptic } from './platform';
 import './ui/features/economyUi';
+import { checkDaily } from './ui/features/daily';
 
 async function boot(): Promise<void> {
   const params = new URLSearchParams(location.search);
@@ -46,6 +47,7 @@ async function boot(): Promise<void> {
     }
   });
 
+  app.onForeground.push(() => checkDaily(app));
   await app.start();
   (window as unknown as { __app: App; __ready: boolean }).__app = app;
   (window as unknown as { __ready: boolean }).__ready = true;

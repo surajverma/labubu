@@ -45,6 +45,8 @@ export class App {
   private current: Screen | null = null;
   private stack: { id: string; params?: Record<string, unknown> }[] = [];
   private modals: { el: HTMLElement; onClose?: () => void }[] = [];
+  /** Run after start and whenever the app comes back to the foreground. */
+  readonly onForeground: (() => void)[] = [];
   tabs: TabDef[] = [
     { id: 'home', label: 'Home', icon: 'home', screen: 'home' },
     { id: 'box', label: 'Boxes', icon: 'box', screen: 'box' },
@@ -71,6 +73,7 @@ export class App {
       } else {
         if (this.current?.uses3D) this.stage.start();
         sfx.resume();
+        this.onForeground.forEach((f) => f());
       }
     });
   }
@@ -107,6 +110,16 @@ export class App {
     this.go('home');
     if (isNative) void SplashScreen.hide({ fadeOutDuration: 250 }).catch(() => {});
     if (!this.game.save.settings.detectedQuality && !navigator.webdriver) this.benchmark();
+    setTimeout(() => this.onForeground.forEach((f) => f()), 900);
+  }
+
+  /** Re-renders the current screen (e.g. after counters changed). */
+  refresh(): void {
+    const top = this.stack[this.stack.length - 1];
+    if (!top || !this.current || this.current.id !== top.id) return;
+    this.current.leave();
+    this.current.enter(top.params);
+    this.updateTabs();
   }
 
   /**
@@ -225,9 +238,9 @@ export class App {
   }
 
   // --- Modals / sheets ---
-  sheet(content: HTMLElement | HTMLElement[], onClose?: () => void): () => void {
+  sheet(content: HTMLElement | (HTMLElement | null)[], onClose?: () => void): () => void {
     const sheet = h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true' });
-    for (const c of Array.isArray(content) ? content : [content]) sheet.append(c);
+    for (const c of Array.isArray(content) ? content : [content]) if (c) sheet.append(c);
     const backdrop = h('div', { class: 'backdrop' }, sheet);
     backdrop.addEventListener('click', (e) => {
       if (e.target === backdrop) this.closeModal();
