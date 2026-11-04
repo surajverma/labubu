@@ -9,26 +9,33 @@ import { join } from 'node:path';
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const PORT = 4179;
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' });
+const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
+  stdio: 'ignore',
+});
 const fail = (msg) => {
   console.error('SMOKE FAIL:', msg);
   process.exitCode = 1;
 };
 try {
   await new Promise((r) => setTimeout(r, 2500));
-  const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-  const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, acceptDownloads: true });
+  const browser = await chromium.launch({
+    args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
+  });
+  const ctx = await browser.newContext({
+    viewport: { width: 412, height: 915 },
+    acceptDownloads: true,
+  });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto(`http://localhost:${PORT}/`);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 30000 });
-// Collect the daily gift sheet that opens on launch (retry until it's gone).
-await page.waitForSelector('button:has-text("Collect!")', { timeout: 5000 }).catch(() => {});
-for (let i = 0; i < 20 && (await page.$('#modal-root .sheet')); i++) {
-  await page.click('#modal-root .sheet button.btn', { timeout: 1000 }).catch(() => {});
-  await page.waitForTimeout(300);
-}
+  // Collect the daily gift sheet that opens on launch (retry until it's gone).
+  await page.waitForSelector('button:has-text("Collect!")', { timeout: 5000 }).catch(() => {});
+  for (let i = 0; i < 20 && (await page.$('#modal-root .sheet')); i++) {
+    await page.click('#modal-root .sheet button.btn', { timeout: 1000 }).catch(() => {});
+    await page.waitForTimeout(300);
+  }
   console.log('✓ app loaded');
 
   await page.click('#tabbar [data-tab=box]');
@@ -58,7 +65,10 @@ for (let i = 0; i < 20 && (await page.$('#modal-root .sheet')); i++) {
 
   // Export.
   await page.click('#tabbar [data-tab=more]');
-  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('text=Export save file')]);
+  const [dl] = await Promise.all([
+    page.waitForEvent('download'),
+    page.click('text=Export save file'),
+  ]);
   const dir = mkdtempSync(join(tmpdir(), 'sb-'));
   const file = join(dir, 'save.json');
   await dl.saveAs(file);
@@ -71,7 +81,10 @@ for (let i = 0; i < 20 && (await page.$('#modal-root .sheet')); i++) {
   await page.click('text=Delete everything');
   await page.waitForTimeout(500);
   await page.click('#tabbar [data-tab=more]');
-  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('text=Import save file')]);
+  const [chooser] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.click('text=Import save file'),
+  ]);
   await chooser.setFiles(file);
   await page.click('button:has-text("Replace")');
   await page.waitForTimeout(500);

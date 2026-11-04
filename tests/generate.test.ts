@@ -37,8 +37,15 @@ describe('generateCharacter', () => {
     for (const s of seeds(2000)) {
       const c = generateCharacter(s, 1);
       for (const [layer, id] of [
-        ['body', c.body], ['head', c.head], ['ears', c.ears], ['hat', c.hat], ['outfit', c.outfit],
-        ['accessory', c.accessory], ['scene', c.scene], ['eyes', c.face.eyes], ['mouth', c.face.mouth],
+        ['body', c.body],
+        ['head', c.head],
+        ['ears', c.ears],
+        ['hat', c.hat],
+        ['outfit', c.outfit],
+        ['accessory', c.accessory],
+        ['scene', c.scene],
+        ['eyes', c.face.eyes],
+        ['mouth', c.face.mouth],
       ] as const) {
         const p = PARTS[layer].find((x) => x.id === id)!;
         expect(p, `${layer}:${id}`).toBeTruthy();
@@ -49,15 +56,47 @@ describe('generateCharacter', () => {
   });
 
   it('has the Phase 1 part counts from the spec', () => {
-    const want: Record<string, number> = { body: 6, head: 5, ears: 12, eyes: 20, brows: 8, mouth: 18, nose: 6, cheeks: 6, hat: 14, outfit: 14, accessory: 10, scene: 10 };
+    const want: Record<string, number> = {
+      body: 6,
+      head: 5,
+      ears: 12,
+      eyes: 20,
+      brows: 8,
+      mouth: 18,
+      nose: 6,
+      cheeks: 6,
+      hat: 14,
+      outfit: 14,
+      accessory: 10,
+      scene: 10,
+    };
     for (const l of LAYERS) expect(partsFor(l, 1, false).length, l).toBe(want[l]);
-    const want2: Record<string, number> = { body: 8, head: 7, ears: 18, eyes: 30, brows: 12, mouth: 26, nose: 8, cheeks: 10, hat: 22, outfit: 22, accessory: 18, scene: 16 };
+    const want2: Record<string, number> = {
+      body: 8,
+      head: 7,
+      ears: 18,
+      eyes: 30,
+      brows: 12,
+      mouth: 26,
+      nose: 8,
+      cheeks: 10,
+      hat: 22,
+      outfit: 22,
+      accessory: 18,
+      scene: 16,
+    };
     for (const l of LAYERS) expect(partsFor(l, 2, false).length, l).toBe(want2[l]);
   });
 
   it('matches the stated rarity odds over 100,000 seeds', () => {
     for (const v of [1, 2]) {
-      const counts: Record<Rarity, number> = { common: 0, rare: 0, epic: 0, legendary: 0, secret: 0 };
+      const counts: Record<Rarity, number> = {
+        common: 0,
+        rare: 0,
+        epic: 0,
+        legendary: 0,
+        secret: 0,
+      };
       const N = 100000;
       for (const s of seeds(N, 'odds' + v)) counts[generateCharacter(s, v).rarity]++;
       for (const r of RARITIES) {
@@ -117,7 +156,13 @@ describe('compatibility rules', () => {
     expect(s.mods.hideEars).toBe(true);
   });
   it('tall ears + hat get shortened', () => {
-    const s = { ...base(), ears: 'bunny', hat: 'tophat', outfit: 'none', mods: {} as CharacterSpec['mods'] };
+    const s = {
+      ...base(),
+      ears: 'bunny',
+      hat: 'tophat',
+      outfit: 'none',
+      mods: {} as CharacterSpec['mods'],
+    };
     expect(applyRules(s)).toContain('short-ears-under-hat');
     expect(s.mods.shortEars).toBe(true);
   });

@@ -172,7 +172,13 @@ export class Game {
     const o = this.find(uidv);
     if (!o) return null;
     const spec = specFor(o);
-    const code = await encodeGift({ seed: o.seed, v: o.v, variant: o.variant, rarity: spec.rarity, giftId: randomGiftId() });
+    const code = await encodeGift({
+      seed: o.seed,
+      v: o.v,
+      variant: o.variant,
+      rarity: spec.rarity,
+      giftId: randomGiftId(),
+    });
     this.removeOne(uidv);
     this.save.stats.gifted++;
     this.changed('gift-sent');
@@ -180,12 +186,25 @@ export class Game {
   }
 
   /** Redeems a gift code once per device. */
-  async redeem(code: string): Promise<{ ok: true; owned: OwnedCharacter; isNew: boolean } | { ok: false; message: string }> {
+  async redeem(
+    code: string,
+  ): Promise<{ ok: true; owned: OwnedCharacter; isNew: boolean } | { ok: false; message: string }> {
     const r = await decodeGift(code);
-    if (!r.ok) return { ok: false, message: r.reason === 'format' ? 'That doesn’t look like a gift code.' : 'That code isn’t valid — check for typos.' };
-    if (this.save.redeemedGifts.includes(r.gift.giftId)) return { ok: false, message: 'This gift was already opened on this phone.' };
+    if (!r.ok)
+      return {
+        ok: false,
+        message:
+          r.reason === 'format'
+            ? 'That doesn’t look like a gift code.'
+            : 'That code isn’t valid — check for typos.',
+      };
+    if (this.save.redeemedGifts.includes(r.gift.giftId))
+      return { ok: false, message: 'This gift was already opened on this phone.' };
     this.save.redeemedGifts.push(r.gift.giftId);
-    const { owned, isNew } = this.addCharacter({ seed: r.gift.seed, v: r.gift.v, variant: r.gift.variant }, 'gift');
+    const { owned, isNew } = this.addCharacter(
+      { seed: r.gift.seed, v: r.gift.v, variant: r.gift.variant },
+      'gift',
+    );
     this.save.stats.giftsReceived++;
     this.changed('gift');
     return { ok: true, owned, isNew };
@@ -193,7 +212,12 @@ export class Game {
 
   /** Buys from the shop. Normal boxes go to your box pile; others are opened right away. */
   buy(kind: BoxKind): boolean {
-    const price = kind === 'normal' ? ECONOMY.shop.box : kind === 'premium' ? ECONOMY.shop.premium : ECONOMY.shop.themed;
+    const price =
+      kind === 'normal'
+        ? ECONOMY.shop.box
+        : kind === 'premium'
+          ? ECONOMY.shop.premium
+          : ECONOMY.shop.themed;
     if (this.save.coins < price) return false;
     this.save.coins -= price;
     this.save.stats.boxesBought++;
@@ -206,7 +230,11 @@ export class Game {
    * Opens a box. Normal boxes use the box pile; premium boxes use the premium pile unless
    * `paid` (just bought); themed boxes are always bought.
    */
-  openBox(kind: BoxKind, rng: Rng, opts: { tag?: string; variant?: string; paid?: boolean } = {}): { draw: Draw; owned: OwnedCharacter; isNew: boolean; spec: CharacterSpec } | null {
+  openBox(
+    kind: BoxKind,
+    rng: Rng,
+    opts: { tag?: string; variant?: string; paid?: boolean } = {},
+  ): { draw: Draw; owned: OwnedCharacter; isNew: boolean; spec: CharacterSpec } | null {
     if (kind === 'normal' && this.save.boxes <= 0) return null;
     if (kind === 'premium' && !opts.paid && this.save.premiumBoxes <= 0) return null;
     if (kind === 'normal') this.save.boxes -= 1;

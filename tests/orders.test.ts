@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { LEVELS, STREETS, levelUnlocked, streetUnlocked } from '../src/game/levels';
-import { dailyOrder, meets, reqLabel, scoreRun, simulateGreedy, solve, specOfRun } from '../src/game/orders';
+import {
+  dailyOrder,
+  meets,
+  reqLabel,
+  scoreRun,
+  simulateGreedy,
+  solve,
+  specOfRun,
+} from '../src/game/orders';
 import { generateCharacter } from '../src/gen/generate';
 import { rngFromString } from '../src/rng';
 
@@ -18,7 +26,10 @@ describe('orders', () => {
         const sol = solve(o, v);
         expect(sol, `${o.id} v${v}`).not.toBeNull();
         const s = specOfRun({ base: 'SOLV-ER22', slots: sol!, locks: [], spinsLeft: 0 }, v);
-        expect(o.reqs.every((r) => meets(s, r)), o.id).toBe(true);
+        expect(
+          o.reqs.every((r) => meets(s, r)),
+          o.id,
+        ).toBe(true);
       }
     }
   });

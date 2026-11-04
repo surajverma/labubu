@@ -8,7 +8,14 @@ import type { Stage } from './stage';
 const W = 1080;
 const H = 1350;
 
-function rr(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+function rr(
+  c: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
   c.beginPath();
   c.roundRect(x, y, w, h, r);
 }
@@ -20,7 +27,9 @@ export function makeShareCard(stage: Stage, spec: CharacterSpec, name: string): 
   const bd = buildBackdrop(spec.scene);
   let shot: HTMLCanvasElement;
   try {
-    shot = stage.withContent(bd, rig.root, [rig.height * 1.25, 2.1, rig.height * 0.5, 0], () => stage.snapshotCanvas(W, W));
+    shot = stage.withContent(bd, rig.root, [rig.height * 1.25, 2.1, rig.height * 0.5, 0], () =>
+      stage.snapshotCanvas(W, W),
+    );
   } finally {
     rig.dispose();
     bd.dispose();
@@ -44,7 +53,9 @@ export function makeShareCard(stage: Stage, spec: CharacterSpec, name: string): 
   const bw = c.measureText(label).width + 56;
   if (spec.rarity === 'secret') {
     const g = c.createLinearGradient(70, 0, 70 + bw, 0);
-    ['#ff6b6b', '#ffc93c', '#5fd068', '#4aa8ff', '#b56bff'].forEach((col, i) => g.addColorStop(i / 4, col));
+    ['#ff6b6b', '#ffc93c', '#5fd068', '#4aa8ff', '#b56bff'].forEach((col, i) =>
+      g.addColorStop(i / 4, col),
+    );
     c.fillStyle = g;
   } else c.fillStyle = info.color;
   rr(c, 70, 70, bw, 72, 36);

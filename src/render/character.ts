@@ -61,7 +61,7 @@ export function buildCharacter(
 ): CharacterRig {
   const quality = opts.quality ?? 'high';
   const segScale = quality === 'low' ? 0.6 : quality === 'medium' ? 0.8 : 1;
-  const kit = new MaterialKit(quality);
+  const kit = new MaterialKit(quality, false);
   const geos: THREE.BufferGeometry[] = [];
   const geo = <T extends THREE.BufferGeometry>(g: T): T => (geos.push(g), g);
   const mesh = (g: THREE.BufferGeometry, m: THREE.Material, parent: THREE.Object3D) => {
@@ -97,10 +97,13 @@ export function buildCharacter(
     leg.position.set(s * legX, legR + legLen / 2 + 0.02, 0);
     legs.push(leg);
     const foot = mesh(
-      blobGeometry({ rx: legR * 1.18, ry: legR * 0.62, rz: legR * 1.45, flatBottom: 0.9 }, {
-        widthSegments: Math.round(28 * segScale),
-        heightSegments: Math.round(18 * segScale),
-      }),
+      blobGeometry(
+        { rx: legR * 1.18, ry: legR * 0.62, rz: legR * 1.45, flatBottom: 0.9 },
+        {
+          widthSegments: Math.round(28 * segScale),
+          heightSegments: Math.round(18 * segScale),
+        },
+      ),
       skin,
       bodyGroup,
     );
@@ -111,7 +114,10 @@ export function buildCharacter(
   // --- Body ---
   const bodyCy = legTop + bp.ry * 0.82;
   const bodyMesh = mesh(
-    blobGeometry(bp, { widthSegments: Math.round(56 * segScale), heightSegments: Math.round(40 * segScale) }),
+    blobGeometry(bp, {
+      widthSegments: Math.round(56 * segScale),
+      heightSegments: Math.round(40 * segScale),
+    }),
     skin,
     bodyGroup,
   );
@@ -121,7 +127,14 @@ export function buildCharacter(
   const belly = mesh(
     blobGeometry(
       { ...bp, rx: bp.rx * 1.004, ry: bp.ry * 1.004, rz: bp.rz * 1.004 },
-      { phiStart: Math.PI / 2 - 0.55, phiLength: 1.1, thetaStart: Math.PI * 0.42, thetaLength: Math.PI * 0.36, widthSegments: 20, heightSegments: 14 },
+      {
+        phiStart: Math.PI / 2 - 0.55,
+        phiLength: 1.1,
+        thetaStart: Math.PI * 0.42,
+        thetaLength: Math.PI * 0.36,
+        widthSegments: 20,
+        heightSegments: 14,
+      },
     ),
     skinAlt,
     bodyGroup,
@@ -160,7 +173,10 @@ export function buildCharacter(
   headGroup.position.y = headY;
   root.add(headGroup);
   const headMesh = mesh(
-    blobGeometry(hp, { widthSegments: Math.round(64 * segScale), heightSegments: Math.round(48 * segScale) }),
+    blobGeometry(hp, {
+      widthSegments: Math.round(64 * segScale),
+      heightSegments: Math.round(48 * segScale),
+    }),
     skin,
     headGroup,
   );
@@ -201,7 +217,11 @@ export function buildCharacter(
   (HATS[spec.hat] ?? HATS.none!)(ctx);
   (ACCESSORIES[spec.accessory] ?? ACCESSORIES.none!)(ctx);
   if (spec.mods.halo) {
-    const halo = mesh(new THREE.TorusGeometry(0.34, 0.035, 12, 48), kit.glow('#ffe27a', 2.2), headGroup);
+    const halo = mesh(
+      new THREE.TorusGeometry(0.34, 0.035, 12, 48),
+      kit.glow('#ffe27a', 2.2),
+      headGroup,
+    );
     halo.rotation.x = Math.PI / 2 - 0.25;
     halo.position.y = ctx.head.top + 0.32;
     halo.name = 'halo';
@@ -309,7 +329,16 @@ export function buildCharacter(
       const a0 = drum.currentAngle;
       const a1 = Math.round(a0 / step) * step - o.direction * passes * step;
       return new Promise<void>((resolve) => {
-        spin = { a0, a1, t: 0, dur: o.durationMs ?? TUNABLES.spinDurationMs, lastCell: Math.round(a0 / step), opts: o, resolve, landed: false };
+        spin = {
+          a0,
+          a1,
+          t: 0,
+          dur: o.durationMs ?? TUNABLES.spinDurationMs,
+          lastCell: Math.round(a0 / step),
+          opts: o,
+          resolve,
+          landed: false,
+        };
       });
     },
     isSpinning: () => spin !== null,

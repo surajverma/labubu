@@ -97,7 +97,13 @@ export interface OrdersState {
 }
 
 export function defaultDaily(): DailyState {
-  return { lastClaimDay: null, streak: 0, freezeUsedWeek: null, maxSeenTime: 0, lastLoginDay: null };
+  return {
+    lastClaimDay: null,
+    streak: 0,
+    freezeUsedWeek: null,
+    maxSeenTime: 0,
+    lastLoginDay: null,
+  };
 }
 
 export function defaultStats(): SaveData['stats'] {

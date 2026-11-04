@@ -1,15 +1,38 @@
 import * as THREE from 'three';
 import type { BuildCtx } from '../buildCtx';
-import { blobGeometry, capsule, latheProfile, ring, type BlobOptions, type BlobParams } from '../geometry';
+import {
+  blobGeometry,
+  capsule,
+  latheProfile,
+  ring,
+  type BlobOptions,
+  type BlobParams,
+} from '../geometry';
 
 type Builder = (c: BuildCtx) => void;
 
-function bodyShell(c: BuildCtx, scale: number, o: BlobOptions, extra: Partial<BlobParams> = {}): THREE.BufferGeometry {
+function bodyShell(
+  c: BuildCtx,
+  scale: number,
+  o: BlobOptions,
+  extra: Partial<BlobParams> = {},
+): THREE.BufferGeometry {
   const p = c.body.params;
-  return blobGeometry({ ...p, ...extra, rx: p.rx * scale, ry: p.ry * scale, rz: p.rz * scale }, { widthSegments: 48, heightSegments: 32, ...o });
+  return blobGeometry(
+    { ...p, ...extra, rx: p.rx * scale, ry: p.ry * scale, rz: p.rz * scale },
+    { widthSegments: 48, heightSegments: 32, ...o },
+  );
 }
 
-function shell(c: BuildCtx, mat: THREE.Material, t0: number, t1: number, scale = 1.035, extra: Partial<BlobParams> = {}, phi?: [number, number]): THREE.Mesh {
+function shell(
+  c: BuildCtx,
+  mat: THREE.Material,
+  t0: number,
+  t1: number,
+  scale = 1.035,
+  extra: Partial<BlobParams> = {},
+  phi?: [number, number],
+): THREE.Mesh {
   const o: BlobOptions = { thetaStart: Math.PI * t0, thetaLength: Math.PI * (t1 - t0) };
   if (phi) {
     o.phiStart = phi[0];
@@ -21,12 +44,25 @@ function shell(c: BuildCtx, mat: THREE.Material, t0: number, t1: number, scale =
 }
 
 /** Front patch centred on +z, angular width w (radians). */
-function frontPatch(c: BuildCtx, mat: THREE.Material, t0: number, t1: number, w: number, scale = 1.045): THREE.Mesh {
+function frontPatch(
+  c: BuildCtx,
+  mat: THREE.Material,
+  t0: number,
+  t1: number,
+  w: number,
+  scale = 1.045,
+): THREE.Mesh {
   return shell(c, mat, t0, t1, scale, {}, [Math.PI / 2 - w / 2, w]);
 }
 
 /** Hem ring at a body latitude (theta fraction 0 top .. 1 bottom). */
-function hem(c: BuildCtx, mat: THREE.Material, tFrac: number, tube = 0.03, scale = 1.04): THREE.Mesh {
+function hem(
+  c: BuildCtx,
+  mat: THREE.Material,
+  tFrac: number,
+  tube = 0.03,
+  scale = 1.04,
+): THREE.Mesh {
   const p = c.body.params;
   const theta = Math.PI * tFrac;
   const y = Math.cos(theta);
@@ -62,7 +98,12 @@ function button(c: BuildCtx, mat: THREE.Material, az: number, el: number, r = 0.
   b.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), a.normal);
 }
 
-function canvasTex(c: BuildCtx, w: number, h: number, draw: (ctx: CanvasRenderingContext2D) => void): THREE.Texture {
+function canvasTex(
+  c: BuildCtx,
+  w: number,
+  h: number,
+  draw: (ctx: CanvasRenderingContext2D) => void,
+): THREE.Texture {
   const cv = document.createElement('canvas');
   cv.width = w;
   cv.height = h;
@@ -79,7 +120,15 @@ function stripes(c: BuildCtx, a: string, b: string, n: number): THREE.Material {
       ctx.fillRect(0, (i * 256) / n, 8, 256 / n + 1);
     }
   });
-  return c.kit.own(new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.85, sheen: 1, sheenRoughness: 0.5, sheenColor: new THREE.Color('#ffffff') }));
+  return c.kit.own(
+    new THREE.MeshPhysicalMaterial({
+      map: t,
+      roughness: 0.85,
+      sheen: 1,
+      sheenRoughness: 0.5,
+      sheenColor: new THREE.Color('#ffffff'),
+    }),
+  );
 }
 
 function dots(c: BuildCtx, bg: string, fg: string): THREE.Material {
@@ -94,11 +143,27 @@ function dots(c: BuildCtx, bg: string, fg: string): THREE.Material {
         ctx.fill();
       }
   });
-  return c.kit.own(new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.85, sheen: 1, sheenRoughness: 0.5, sheenColor: new THREE.Color('#ffffff') }));
+  return c.kit.own(
+    new THREE.MeshPhysicalMaterial({
+      map: t,
+      roughness: 0.85,
+      sheen: 1,
+      sheenRoughness: 0.5,
+      sheenColor: new THREE.Color('#ffffff'),
+    }),
+  );
 }
 
 /** A-line skirt/coat flaring from a latitude to the hem. */
-function flare(c: BuildCtx, mat: THREE.Material, yTop: number, yBottom: number, rTop: number, rBottom: number, wobble = 0): THREE.Mesh {
+function flare(
+  c: BuildCtx,
+  mat: THREE.Material,
+  yTop: number,
+  yBottom: number,
+  rTop: number,
+  rBottom: number,
+  wobble = 0,
+): THREE.Mesh {
   const h = yTop - yBottom;
   const g = latheProfile(h, (t) => rBottom + (rTop - rBottom) * Math.pow(t, 0.8), 12, 48);
   if (wobble > 0) {
@@ -179,7 +244,11 @@ export const OUTFITS: Record<string, Builder> = {
       const f = c.body.anchor(s * 26, 38).pos;
       const top = c.body.anchor(s * 40, 75).pos.multiplyScalar(1.06);
       const back = c.body.anchor(s * 150, 30).pos;
-      const curve = new THREE.CatmullRomCurve3([f.clone().multiplyScalar(1.04), top, back.clone().multiplyScalar(1.04)]);
+      const curve = new THREE.CatmullRomCurve3([
+        f.clone().multiplyScalar(1.04),
+        top,
+        back.clone().multiplyScalar(1.04),
+      ]);
       curve.points.forEach((p) => (p.y += 0));
       c.mesh(new THREE.TubeGeometry(curve, 24, 0.028, 8), denim, c.body.group).scale.set(1, 1, 1);
       button(c, c.kit.metal('#f2c14e'), s * 26, 38, 0.03);
@@ -197,7 +266,11 @@ export const OUTFITS: Record<string, Builder> = {
     sleeves(c, m, 0.8);
     frontPatch(c, c.kit.fabric(pal.outfitAlt), 0.5, 0.72, 0.9, 1.05).name = 'pocket';
     // Bunched hood behind the neck.
-    const hood = c.mesh(ring(bodyR(c, 0.12) * 0.95, 0.09, c.body.params.rz / c.body.params.rx), m, c.body.group);
+    const hood = c.mesh(
+      ring(bodyR(c, 0.12) * 0.95, 0.09, c.body.params.rz / c.body.params.rx),
+      m,
+      c.body.group,
+    );
     hood.position.y = bodyY(c, 0.12);
     for (const s of [-1, 1]) {
       const a = c.body.anchor(s * 12, 55).pos.multiplyScalar(1.06);
@@ -212,7 +285,11 @@ export const OUTFITS: Record<string, Builder> = {
     shell(c, m, 0.1, 0.55);
     flare(c, m, bodyY(c, 0.55), bodyY(c, 0.95) - 0.02, bodyR(c, 0.55) * 1.04, bodyR(c, 0.9) * 1.18);
     sleeves(c, m, 0.85);
-    const collar = c.mesh(ring(bodyR(c, 0.12) * 1.02, 0.05, c.body.params.rz / c.body.params.rx), m, c.body.group);
+    const collar = c.mesh(
+      ring(bodyR(c, 0.12) * 1.02, 0.05, c.body.params.rz / c.body.params.rx),
+      m,
+      c.body.group,
+    );
     collar.position.y = bodyY(c, 0.12);
     for (const el of [30, 5, -20]) button(c, c.kit.plastic(pal.outfitAlt, 0.3), 0, el, 0.04);
   },
@@ -224,12 +301,23 @@ export const OUTFITS: Record<string, Builder> = {
     sleeves(c, white, 0.95);
     pants(c, white);
     for (const f of c.body.feet) f.material = c.kit.plastic('#9aa3b5', 0.4);
-    const panel = c.mesh(blobGeometry({ rx: 0.17, ry: 0.11, rz: 0.05, power: 3 }, { widthSegments: 20, heightSegments: 12 }), c.kit.plastic('#cfd5e2', 0.3), c.body.group);
+    const panel = c.mesh(
+      blobGeometry(
+        { rx: 0.17, ry: 0.11, rz: 0.05, power: 3 },
+        { widthSegments: 20, heightSegments: 12 },
+      ),
+      c.kit.plastic('#cfd5e2', 0.3),
+      c.body.group,
+    );
     const a = c.body.anchor(0, 18);
     panel.position.copy(a.pos).addScaledVector(a.normal, 0.02);
     panel.lookAt(panel.position.clone().add(a.normal));
     for (let i = 0; i < 3; i++) {
-      const b = c.mesh(new THREE.SphereGeometry(0.025, 10, 8), c.kit.glow([pal.accent, '#ff5d5d', '#5dff9d'][i]!, 0.8), panel);
+      const b = c.mesh(
+        new THREE.SphereGeometry(0.025, 10, 8),
+        c.kit.glow([pal.accent, '#ff5d5d', '#5dff9d'][i]!, 0.8),
+        panel,
+      );
       b.position.set(-0.08 + i * 0.08, 0, 0.045);
     }
     hem(c, c.kit.plastic(pal.outfit, 0.3), 0.62, 0.04);
@@ -240,7 +328,15 @@ export const OUTFITS: Record<string, Builder> = {
     const pal = c.spec.palette;
     const m = c.kit.fabric(pal.outfit);
     shell(c, m, 0.12, 0.5);
-    flare(c, m, bodyY(c, 0.5), bodyY(c, 0.9) - 0.04, bodyR(c, 0.5) * 1.03, bodyR(c, 0.85) * 1.32, 0.03);
+    flare(
+      c,
+      m,
+      bodyY(c, 0.5),
+      bodyY(c, 0.9) - 0.04,
+      bodyR(c, 0.5) * 1.03,
+      bodyR(c, 0.85) * 1.32,
+      0.03,
+    );
     hem(c, c.kit.fabric(pal.outfitAlt), 0.5, 0.028);
     for (const arm of c.body.arms) {
       const puff = c.mesh(new THREE.SphereGeometry(0.14, 16, 12), m, arm.parent!);
@@ -248,8 +344,15 @@ export const OUTFITS: Record<string, Builder> = {
     }
     const bow = c.body.anchor(0, 20);
     for (const s of [-1, 1]) {
-      const lobe = c.mesh(blobGeometry({ rx: 0.07, ry: 0.05, rz: 0.03 }, { widthSegments: 12, heightSegments: 8 }), c.kit.fabric(pal.outfitAlt), c.body.group);
-      lobe.position.copy(bow.pos).addScaledVector(bow.normal, 0.04).add(new THREE.Vector3(s * 0.06, 0, 0));
+      const lobe = c.mesh(
+        blobGeometry({ rx: 0.07, ry: 0.05, rz: 0.03 }, { widthSegments: 12, heightSegments: 8 }),
+        c.kit.fabric(pal.outfitAlt),
+        c.body.group,
+      );
+      lobe.position
+        .copy(bow.pos)
+        .addScaledVector(bow.normal, 0.04)
+        .add(new THREE.Vector3(s * 0.06, 0, 0));
     }
   },
 
@@ -270,7 +373,15 @@ export const OUTFITS: Record<string, Builder> = {
       ctx.strokeText(num, 128, 136);
       ctx.fillText(num, 128, 136);
     });
-    const mat = c.kit.own(new THREE.MeshPhysicalMaterial({ map: t, transparent: true, roughness: 0.8, polygonOffset: true, polygonOffsetFactor: -2 }));
+    const mat = c.kit.own(
+      new THREE.MeshPhysicalMaterial({
+        map: t,
+        transparent: true,
+        roughness: 0.8,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+      }),
+    );
     frontPatch(c, mat, 0.26, 0.6, 1.2, 1.04).name = 'number';
     // Shorts.
     shell(c, c.kit.fabric(pal.outfitAlt), 0.62, 1.0, 1.03);
@@ -289,9 +400,34 @@ export const OUTFITS: Record<string, Builder> = {
     const pal = c.spec.palette;
     const m = c.kit.fabric(pal.outfit);
     shell(c, m, 0.15, 0.62);
-    const tulle = c.kit.own(new THREE.MeshPhysicalMaterial({ color: new THREE.Color(pal.outfitAlt), roughness: 0.6, sheen: 1, sheenColor: new THREE.Color('#ffffff'), transparent: true, opacity: 0.92 }));
-    flare(c, tulle, bodyY(c, 0.55), bodyY(c, 0.66), bodyR(c, 0.55) * 1.04, bodyR(c, 0.62) * 1.6, 0.08);
-    flare(c, tulle, bodyY(c, 0.6), bodyY(c, 0.7), bodyR(c, 0.6) * 1.04, bodyR(c, 0.66) * 1.45, 0.08);
+    const tulle = c.kit.own(
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(pal.outfitAlt),
+        roughness: 0.6,
+        sheen: 1,
+        sheenColor: new THREE.Color('#ffffff'),
+        transparent: true,
+        opacity: 0.92,
+      }),
+    );
+    flare(
+      c,
+      tulle,
+      bodyY(c, 0.55),
+      bodyY(c, 0.66),
+      bodyR(c, 0.55) * 1.04,
+      bodyR(c, 0.62) * 1.6,
+      0.08,
+    );
+    flare(
+      c,
+      tulle,
+      bodyY(c, 0.6),
+      bodyY(c, 0.7),
+      bodyR(c, 0.6) * 1.04,
+      bodyR(c, 0.66) * 1.45,
+      0.08,
+    );
   },
 
   pajamas: (c) => {
@@ -310,7 +446,16 @@ export const OUTFITS: Record<string, Builder> = {
     const top = bodyY(c, 0.1);
     const h = top - 0.08;
     const rT = bodyR(c, 0.12) * 1.05;
-    const g = new THREE.CylinderGeometry(rT, rT * 2.1, h, 36, 8, true, Math.PI * 0.45, Math.PI * 1.1);
+    const g = new THREE.CylinderGeometry(
+      rT,
+      rT * 2.1,
+      h,
+      36,
+      8,
+      true,
+      Math.PI * 0.45,
+      Math.PI * 1.1,
+    );
     const pos = g.getAttribute('position') as THREE.BufferAttribute;
     for (let i = 0; i < pos.count; i++) {
       const y = pos.getY(i);
@@ -325,13 +470,25 @@ export const OUTFITS: Record<string, Builder> = {
     hem(c, c.kit.fabric(pal.outfitAlt), 0.1, 0.045);
     // Hero badge on the chest so the cape reads from the front.
     const badgeAt = c.body.anchor(0, 22);
-    const badge = c.mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.03, 5), c.kit.plastic(pal.outfitAlt, 0.3), c.body.group);
+    const badge = c.mesh(
+      new THREE.CylinderGeometry(0.1, 0.1, 0.03, 5),
+      c.kit.plastic(pal.outfitAlt, 0.3),
+      c.body.group,
+    );
     badge.position.copy(badgeAt.pos).addScaledVector(badgeAt.normal, 0.02);
     badge.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), badgeAt.normal);
-    const star = c.mesh(new THREE.OctahedronGeometry(0.05, 0), c.kit.metal('#f2c14e'), c.body.group);
+    const star = c.mesh(
+      new THREE.OctahedronGeometry(0.05, 0),
+      c.kit.metal('#f2c14e'),
+      c.body.group,
+    );
     star.position.copy(badgeAt.pos).addScaledVector(badgeAt.normal, 0.05);
     for (const s of [-1, 1]) {
-      const clasp = c.mesh(new THREE.SphereGeometry(0.045, 12, 8), c.kit.metal('#f2c14e'), c.body.group);
+      const clasp = c.mesh(
+        new THREE.SphereGeometry(0.045, 12, 8),
+        c.kit.metal('#f2c14e'),
+        c.body.group,
+      );
       clasp.position.copy(c.body.anchor(s * 40, 62).pos).multiplyScalar(1.06);
     }
   },
@@ -344,7 +501,11 @@ export const OUTFITS: Record<string, Builder> = {
     // Collar flap on the back and front "V".
     shell(c, c.kit.fabric(pal.outfit), 0.08, 0.36, 1.05, {}, [Math.PI * 1.5 - 0.9, 1.8]);
     const knot = c.body.anchor(0, 48);
-    const k = c.mesh(blobGeometry({ rx: 0.06, ry: 0.045, rz: 0.04 }, { widthSegments: 12, heightSegments: 8 }), c.kit.fabric('#e8424d'), c.body.group);
+    const k = c.mesh(
+      blobGeometry({ rx: 0.06, ry: 0.045, rz: 0.04 }, { widthSegments: 12, heightSegments: 8 }),
+      c.kit.fabric('#e8424d'),
+      c.body.group,
+    );
     k.position.copy(knot.pos).addScaledVector(knot.normal, 0.04);
     for (const s of [-1, 1]) {
       const tail = c.mesh(capsule(0.03, 0.1, 6), c.kit.fabric('#e8424d'), c.body.group);
@@ -363,10 +524,20 @@ export const OUTFITS: Record<string, Builder> = {
     const neck: THREE.Vector3[] = [];
     for (let i = 0; i <= 12; i++) {
       const a = (i / 12) * Math.PI * 2;
-      neck.push(new THREE.Vector3(Math.sin(a) * bodyR(c, 0.08) * 1.02, bodyY(c, 0.08) + 0.0 - Math.cos(a) * 0.08 * (1 + Math.cos(a)), Math.cos(a) * bodyR(c, 0.08) * 0.95));
+      neck.push(
+        new THREE.Vector3(
+          Math.sin(a) * bodyR(c, 0.08) * 1.02,
+          bodyY(c, 0.08) + 0.0 - Math.cos(a) * 0.08 * (1 + Math.cos(a)),
+          Math.cos(a) * bodyR(c, 0.08) * 0.95,
+        ),
+      );
     }
     void top;
-    c.mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(neck, true), 40, 0.02, 6, true), m, c.body.group);
+    c.mesh(
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(neck, true), 40, 0.02, 6, true),
+      m,
+      c.body.group,
+    );
     hem(c, m, 0.55, 0.02, 1.045);
   },
 
@@ -378,7 +549,14 @@ export const OUTFITS: Record<string, Builder> = {
         ctx.fillRect(i * 64, 0, 64, 16);
       }
     });
-    const mat = c.kit.own(new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.05 }));
+    const mat = c.kit.own(
+      new THREE.MeshPhysicalMaterial({
+        map: t,
+        roughness: 0.25,
+        clearcoat: 1,
+        clearcoatRoughness: 0.05,
+      }),
+    );
     const r = bodyR(c, 0.62);
     const tor = c.mesh(new THREE.TorusGeometry(r * 1.08, 0.13, 20, 56), mat, c.body.group);
     tor.rotation.x = Math.PI / 2;
@@ -393,8 +571,15 @@ export const OUTFITS: Record<string, Builder> = {
     sleeves(c, c.kit.fabric('#24232b'), 0.85);
     const a = c.body.anchor(0, 62);
     for (const s of [-1, 1]) {
-      const lobe = c.mesh(blobGeometry({ rx: 0.07, ry: 0.045, rz: 0.03 }, { widthSegments: 12, heightSegments: 8 }), c.kit.fabric('#e23b5a'), c.body.group);
-      lobe.position.copy(a.pos).addScaledVector(a.normal, 0.05).add(new THREE.Vector3(s * 0.06, 0, 0));
+      const lobe = c.mesh(
+        blobGeometry({ rx: 0.07, ry: 0.045, rz: 0.03 }, { widthSegments: 12, heightSegments: 8 }),
+        c.kit.fabric('#e23b5a'),
+        c.body.group,
+      );
+      lobe.position
+        .copy(a.pos)
+        .addScaledVector(a.normal, 0.05)
+        .add(new THREE.Vector3(s * 0.06, 0, 0));
     }
     for (const el of [30, 5]) button(c, c.kit.plastic('#24232b', 0.2), 0, el, 0.022);
   },
@@ -406,7 +591,8 @@ export const OUTFITS: Record<string, Builder> = {
     flare(c, m, bodyY(c, 0.55), bodyY(c, 0.95), bodyR(c, 0.55) * 1.04, bodyR(c, 0.9) * 1.2);
     sleeves(c, m, 0.85);
     hem(c, c.kit.fabric('#3a2a1e'), 0.55, 0.04, 1.05);
-    for (const el of [35, 15]) for (const s of [-1, 1]) button(c, c.kit.metal('#f2c14e'), s * 18, el, 0.028);
+    for (const el of [35, 15])
+      for (const s of [-1, 1]) button(c, c.kit.metal('#f2c14e'), s * 18, el, 0.028);
   },
 
   diver: (c) => {
@@ -419,7 +605,11 @@ export const OUTFITS: Record<string, Builder> = {
     const brass = c.kit.metal('#d2a24c');
     const dome = c.mesh(sphereWithWindow(R, 0.72), brass, c.head.group);
     dome.position.y = 0.06;
-    const rim = c.mesh(new THREE.TorusGeometry(R * Math.sin(0.72), 0.05, 10, 40), brass, c.head.group);
+    const rim = c.mesh(
+      new THREE.TorusGeometry(R * Math.sin(0.72), 0.05, 10, 40),
+      brass,
+      c.head.group,
+    );
     rim.position.set(0, 0.06, R * Math.cos(0.72));
     const collar = c.mesh(ring(R * 0.62, 0.08), brass, c.head.group);
     collar.position.y = -R * 0.72 + 0.06;
@@ -435,7 +625,11 @@ export const OUTFITS: Record<string, Builder> = {
     shell(c, m, 0.1, 0.86, 1.03);
     for (const f of [0.25, 0.42, 0.59, 0.76]) hem(c, m, f, 0.06, 1.03);
     sleeves(c, m, 0.85);
-    const collar = c.mesh(ring(bodyR(c, 0.1) * 1.0, 0.07, c.body.params.rz / c.body.params.rx), c.kit.plastic(pal.outfitAlt, 0.45), c.body.group);
+    const collar = c.mesh(
+      ring(bodyR(c, 0.1) * 1.0, 0.07, c.body.params.rz / c.body.params.rx),
+      c.kit.plastic(pal.outfitAlt, 0.45),
+      c.body.group,
+    );
     collar.position.y = bodyY(c, 0.1);
   },
 
@@ -447,7 +641,11 @@ export const OUTFITS: Record<string, Builder> = {
     const p = frontPatch(c, c.kit.fabric('#e9edf6'), 0.3, 0.42, 0.3, 1.05);
     p.rotation.y = 0.35;
     for (let i = 0; i < 2; i++) {
-      const pen = c.mesh(capsule(0.012, 0.08, 6), c.kit.plastic(['#3f7bff', '#ff4d6d'][i]!), c.body.group);
+      const pen = c.mesh(
+        capsule(0.012, 0.08, 6),
+        c.kit.plastic(['#3f7bff', '#ff4d6d'][i]!),
+        c.body.group,
+      );
       const a = c.body.anchor(20 + i * 6, 42);
       pen.position.copy(a.pos).addScaledVector(a.normal, 0.04);
     }
@@ -472,7 +670,15 @@ export const OUTFITS: Record<string, Builder> = {
       }
     });
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    const m = c.kit.own(new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.8, sheen: 1, sheenColor: new THREE.Color('#ffffff'), side: THREE.DoubleSide }));
+    const m = c.kit.own(
+      new THREE.MeshPhysicalMaterial({
+        map: t,
+        roughness: 0.8,
+        sheen: 1,
+        sheenColor: new THREE.Color('#ffffff'),
+        side: THREE.DoubleSide,
+      }),
+    );
     shell(c, m, 0.1, 0.5);
     flare(c, m, bodyY(c, 0.5), 0.02, bodyR(c, 0.5) * 1.04, bodyR(c, 0.85) * 1.3);
     sleeves(c, m, 0.95);
@@ -484,11 +690,19 @@ export const OUTFITS: Record<string, Builder> = {
     for (const f of [0.3, 0.5]) hem(c, c.kit.metal('#9aa3b2'), f, 0.025, 1.05);
     sleeves(c, steel, 0.5);
     for (const arm of c.body.arms) {
-      const pad = c.mesh(new THREE.SphereGeometry(0.15, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), steel, arm.parent!);
+      const pad = c.mesh(
+        new THREE.SphereGeometry(0.15, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2),
+        steel,
+        arm.parent!,
+      );
       pad.position.y = 0.0;
     }
     const emblem = c.body.anchor(0, 20);
-    const e = c.mesh(new THREE.OctahedronGeometry(0.06, 0), c.kit.plastic(c.spec.palette.accent, 0.2), c.body.group);
+    const e = c.mesh(
+      new THREE.OctahedronGeometry(0.06, 0),
+      c.kit.plastic(c.spec.palette.accent, 0.2),
+      c.body.group,
+    );
     e.position.copy(emblem.pos).addScaledVector(emblem.normal, 0.05);
   },
 
@@ -498,8 +712,19 @@ export const OUTFITS: Record<string, Builder> = {
     const r = bodyR(c, 0.6);
     for (let i = 0; i < 10; i++) {
       const a = (i / 10) * Math.PI * 2;
-      const leaf = c.mesh(blobGeometry({ rx: 0.08, ry: 0.16, rz: 0.025, egg: -0.3 }, { widthSegments: 12, heightSegments: 10 }), green, c.body.group);
-      leaf.position.set(Math.sin(a) * r * 1.05, y - 0.1, Math.cos(a) * r * (c.body.params.rz / c.body.params.rx) * 1.05);
+      const leaf = c.mesh(
+        blobGeometry(
+          { rx: 0.08, ry: 0.16, rz: 0.025, egg: -0.3 },
+          { widthSegments: 12, heightSegments: 10 },
+        ),
+        green,
+        c.body.group,
+      );
+      leaf.position.set(
+        Math.sin(a) * r * 1.05,
+        y - 0.1,
+        Math.cos(a) * r * (c.body.params.rz / c.body.params.rx) * 1.05,
+      );
       leaf.rotation.y = a;
       leaf.rotation.x = 0.25;
     }

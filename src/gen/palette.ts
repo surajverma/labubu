@@ -62,7 +62,10 @@ const HARMONIES: { id: Exclude<Harmony, 'seasonal'>; w: number }[] = [
 ];
 
 /** Seasonal palettes (generator v2 variants). */
-export const SEASONAL_PALETTES: Record<string, { name: string; colors: string[]; skins: string[] }> = {
+export const SEASONAL_PALETTES: Record<
+  string,
+  { name: string; colors: string[]; skins: string[] }
+> = {
   diwali: {
     name: 'Diwali',
     colors: ['#ffb627', '#e2365b', '#ff7a1a', '#7a2a8f', '#ffd86b', '#2fa38f'],
@@ -89,7 +92,13 @@ export function generatePalette(rng: Rng, seasonal?: string): Palette {
   if (seasonal && SEASONAL_PALETTES[seasonal]) return seasonalPalette(rng, seasonal);
   const harmony = pickWeighted(rng, HARMONIES, (h) => h.w).id;
   const H = rng() * 360;
-  let skin: string, skinAlt: string, outfit: string, outfitAlt: string, hat: string, hatAlt: string, accent: string;
+  let skin: string,
+    skinAlt: string,
+    outfit: string,
+    outfitAlt: string,
+    hat: string,
+    hatAlt: string,
+    accent: string;
   // 6% chance of a mono vinyl (white, charcoal, or grey) skin.
   const mono = rng();
   switch (harmony) {
@@ -149,7 +158,15 @@ export function generatePalette(rng: Rng, seasonal?: string): Palette {
 }
 
 function finishPalette(
-  c: { skin: string; skinAlt: string; outfit: string; outfitAlt: string; hat: string; hatAlt: string; accent: string },
+  c: {
+    skin: string;
+    skinAlt: string;
+    outfit: string;
+    outfitAlt: string;
+    hat: string;
+    hatAlt: string;
+    accent: string;
+  },
   harmony: Harmony,
   H: number,
   seasonal?: string,

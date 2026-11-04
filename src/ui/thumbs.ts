@@ -4,10 +4,14 @@ import type { Stage } from '../render/stage';
 import { idbGet, idbSet } from './idb';
 
 /** Bump when character visuals change so cached thumbnails are re-rendered. */
-const THUMB_VERSION = 3;
+const THUMB_VERSION = 4;
 const SIZE = 256;
 
-type Req = { key: string; c: { seed: string; v: number; variant?: string }; resolve: (url: string) => void };
+type Req = {
+  key: string;
+  c: { seed: string; v: number; variant?: string };
+  resolve: (url: string) => void;
+};
 
 /**
  * Thumbnails are rendered once (one per frame, so the UI stays smooth) and cached in

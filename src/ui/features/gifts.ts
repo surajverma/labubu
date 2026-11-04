@@ -20,7 +20,11 @@ DETAIL_ACTIONS.push((app, o) =>
         app.tap();
         try {
           const cv = makeShareCard(app.stage, specFor(o), displayName(o));
-          await shareImage(cv, `spinbuddies-${o.seed}.png`, `Look at my ${APP.name} buddy ${displayName(o)}!`);
+          await shareImage(
+            cv,
+            `spinbuddies-${o.seed}.png`,
+            `Look at my ${APP.name} buddy ${displayName(o)}!`,
+          );
         } catch (e) {
           console.warn(e);
         }
@@ -64,12 +68,21 @@ function showCode(app: App, code: string, name: string): void {
   const msg = `🎁 I’m giving you ${name} in ${APP.name}! Open the app → Settings → Redeem a gift code, and enter:\n${code}`;
   app.sheet([
     h('h3', null, 'Your gift code'),
-    h('p', { class: 'muted' }, 'Send this to your friend. It can be opened once. Keep it until they have it — the buddy isn’t in your book any more!'),
+    h(
+      'p',
+      { class: 'muted' },
+      'Send this to your friend. It can be opened once. Keep it until they have it — the buddy isn’t in your book any more!',
+    ),
     h('div', { class: 'giftcode', 'aria-label': 'Gift code' }, code),
     h(
       'div',
       { class: 'stack', style: 'margin-top:14px' },
-      h('button', { class: 'btn purple block', onclick: () => void shareText(msg) }, icon('share'), 'Send'),
+      h(
+        'button',
+        { class: 'btn purple block', onclick: () => void shareText(msg) },
+        icon('share'),
+        'Send',
+      ),
       h(
         'button',
         {
@@ -91,7 +104,14 @@ function showCode(app: App, code: string, name: string): void {
 
 export function openRedeem(app: App): void {
   app.tap();
-  const input = h('input', { class: 'text', placeholder: 'GIFT-XXXX-XXXX-…', autocapitalize: 'characters', autocomplete: 'off', spellcheck: 'false', 'aria-label': 'Gift code' }) as HTMLInputElement;
+  const input = h('input', {
+    class: 'text',
+    placeholder: 'GIFT-XXXX-XXXX-…',
+    autocapitalize: 'characters',
+    autocomplete: 'off',
+    spellcheck: 'false',
+    'aria-label': 'Gift code',
+  }) as HTMLInputElement;
   const err = h('p', { class: 'muted', style: 'min-height:20px;color:#d13b3b' });
   const go = async () => {
     const r = await app.game.redeem(input.value);
@@ -123,8 +143,18 @@ function tradeHelp(app: App): void {
   app.sheet([
     h('h3', null, 'Trading with a friend'),
     h('p', null, 'A trade is two gifts:'),
-    h('ol', { style: 'line-height:1.6;padding-left:20px' }, h('li', null, 'You each pick a buddy in your Book and tap Gift.'), h('li', null, 'Send each other the gift codes.'), h('li', null, 'You each tap Redeem a gift code and enter the other’s code.')),
-    h('p', { class: 'muted', style: 'font-size:14px' }, 'Codes work offline. Each code can be opened once per phone. Codes are “good enough for friends” — not cheat-proof.'),
+    h(
+      'ol',
+      { style: 'line-height:1.6;padding-left:20px' },
+      h('li', null, 'You each pick a buddy in your Book and tap Gift.'),
+      h('li', null, 'Send each other the gift codes.'),
+      h('li', null, 'You each tap Redeem a gift code and enter the other’s code.'),
+    ),
+    h(
+      'p',
+      { class: 'muted', style: 'font-size:14px' },
+      'Codes work offline. Each code can be opened once per phone. Codes are “good enough for friends” — not cheat-proof.',
+    ),
   ]);
 }
 
@@ -136,8 +166,18 @@ const friendsSection = (app: App) =>
     h(
       'div',
       { class: 'list' },
-      h('button', { class: 'item', onclick: () => openRedeem(app) }, icon('gift', 22), h('span', { class: 'label' }, 'Redeem a gift code')),
-      h('button', { class: 'item', onclick: () => tradeHelp(app) }, icon('people', 22), h('span', { class: 'label' }, 'How to trade')),
+      h(
+        'button',
+        { class: 'item', onclick: () => openRedeem(app) },
+        icon('gift', 22),
+        h('span', { class: 'label' }, 'Redeem a gift code'),
+      ),
+      h(
+        'button',
+        { class: 'item', onclick: () => tradeHelp(app) },
+        icon('people', 22),
+        h('span', { class: 'label' }, 'How to trade'),
+      ),
     ),
   );
 

@@ -3,11 +3,22 @@ import { decodeGift, encodeGift, randomGiftId } from '../src/game/gifts';
 import { encodeMix, generateCharacter } from '../src/gen/generate';
 import { SEED_ALPHABET } from '../src/rng';
 
-const gift = (seed: string, v = 2, variant?: string) => ({ seed, v, variant, rarity: generateCharacter(seed, v, variant).rarity, giftId: randomGiftId() });
+const gift = (seed: string, v = 2, variant?: string) => ({
+  seed,
+  v,
+  variant,
+  rarity: generateCharacter(seed, v, variant).rarity,
+  giftId: randomGiftId(),
+});
 
 describe('gift codes', () => {
   it('round-trips plain, seasonal and order (mix) characters', async () => {
-    for (const g of [gift('K7Q2-MX9A'), gift('ABCD-EFGH', 1), gift('ZZZZ-2345', 2, 'diwali'), gift('ABCD-EFGH', 2, encodeMix({ H: 'K7Q2-MX9A', S: '2345-6789' }))]) {
+    for (const g of [
+      gift('K7Q2-MX9A'),
+      gift('ABCD-EFGH', 1),
+      gift('ZZZZ-2345', 2, 'diwali'),
+      gift('ABCD-EFGH', 2, encodeMix({ H: 'K7Q2-MX9A', S: '2345-6789' })),
+    ]) {
       const code = await encodeGift(g);
       expect(code).toMatch(/^GIFT-[2-9A-Z]{4}(-[2-9A-Z]{1,4})+$/);
       const r = await decodeGift(code);
@@ -39,7 +50,10 @@ describe('gift codes', () => {
   });
   it('rejects a code whose rarity was changed (even with a valid MAC it would mismatch)', async () => {
     const g = gift('K7Q2-MX9A');
-    const wrong = { ...g, rarity: (g.rarity === 'secret' ? 'common' : 'secret') as 'common' | 'secret' };
+    const wrong = {
+      ...g,
+      rarity: (g.rarity === 'secret' ? 'common' : 'secret') as 'common' | 'secret',
+    };
     const r = await decodeGift(await encodeGift(wrong));
     expect(r).toEqual({ ok: false, reason: 'mismatch' });
   });

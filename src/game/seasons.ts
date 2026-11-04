@@ -5,8 +5,20 @@ import { SEASONAL_PALETTES } from '../gen/palette';
  * Seasonal palettes are active around these dates (local time). Diwali and Holi follow
  * the lunar calendar, so their dates are listed per year (verify/extend yearly).
  */
-const DIWALI: Record<number, string> = { 2026: '2026-11-08', 2027: '2027-10-29', 2028: '2028-10-17', 2029: '2029-11-05', 2030: '2030-10-26' };
-const HOLI: Record<number, string> = { 2026: '2026-03-04', 2027: '2027-03-22', 2028: '2028-03-11', 2029: '2029-03-01', 2030: '2030-03-20' };
+const DIWALI: Record<number, string> = {
+  2026: '2026-11-08',
+  2027: '2027-10-29',
+  2028: '2028-10-17',
+  2029: '2029-11-05',
+  2030: '2030-10-26',
+};
+const HOLI: Record<number, string> = {
+  2026: '2026-03-04',
+  2027: '2027-03-22',
+  2028: '2028-03-11',
+  2029: '2029-03-01',
+  2030: '2030-03-20',
+};
 
 export interface Season {
   id: keyof typeof SEASONAL_PALETTES;

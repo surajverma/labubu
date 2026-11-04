@@ -29,14 +29,25 @@ export function poof(at: THREE.Vector3, color = '#ffffff', count = 60, scale = 1
   const pos = new Float32Array(count * 3);
   const vel: THREE.Vector3[] = [];
   for (let i = 0; i < count; i++) {
-    const d = new THREE.Vector3(Math.random() - 0.5, Math.random() * 0.9 - 0.2, Math.random() - 0.5).normalize();
+    const d = new THREE.Vector3(
+      Math.random() - 0.5,
+      Math.random() * 0.9 - 0.2,
+      Math.random() - 0.5,
+    ).normalize();
     vel.push(d.multiplyScalar((1.2 + Math.random() * 1.6) * scale));
     pos[i * 3] = at.x + d.x * 0.2;
     pos[i * 3 + 1] = at.y + d.y * 0.2;
     pos[i * 3 + 2] = at.z + d.z * 0.2;
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const mat = new THREE.PointsMaterial({ color, size: 0.55 * scale, map: dot(), transparent: true, depthWrite: false, opacity: 1 });
+  const mat = new THREE.PointsMaterial({
+    color,
+    size: 0.55 * scale,
+    map: dot(),
+    transparent: true,
+    depthWrite: false,
+    opacity: 1,
+  });
   const pts = new THREE.Points(geo, mat);
   pts.renderOrder = 10;
   let t = 0;
@@ -72,14 +83,27 @@ export function sparkles(at: THREE.Vector3, colors: string[], count = 90, life =
   for (let i = 0; i < count; i++) {
     const a = Math.random() * Math.PI * 2;
     const up = 2.5 + Math.random() * 2.5;
-    vel.push(new THREE.Vector3(Math.cos(a) * (0.6 + Math.random() * 1.6), up, Math.sin(a) * (0.6 + Math.random() * 1.2)));
+    vel.push(
+      new THREE.Vector3(
+        Math.cos(a) * (0.6 + Math.random() * 1.6),
+        up,
+        Math.sin(a) * (0.6 + Math.random() * 1.2),
+      ),
+    );
     pos.set([at.x, at.y, at.z], i * 3);
     c.set(colors[i % colors.length]!);
     col.set([c.r, c.g, c.b], i * 3);
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  const mat = new THREE.PointsMaterial({ size: 0.12, map: dot(), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  const mat = new THREE.PointsMaterial({
+    size: 0.12,
+    map: dot(),
+    vertexColors: true,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
   const pts = new THREE.Points(geo, mat);
   pts.renderOrder = 11;
   let t = 0;
@@ -92,7 +116,12 @@ export function sparkles(at: THREE.Vector3, colors: string[], count = 90, life =
         const v = vel[i]!;
         v.y -= 4.2 * dt;
         v.multiplyScalar(Math.pow(0.5, dt));
-        p.setXYZ(i, p.getX(i) + v.x * dt, Math.max(0.02, p.getY(i) + v.y * dt), p.getZ(i) + v.z * dt);
+        p.setXYZ(
+          i,
+          p.getX(i) + v.x * dt,
+          Math.max(0.02, p.getY(i) + v.y * dt),
+          p.getZ(i) + v.z * dt,
+        );
       }
       p.needsUpdate = true;
       mat.opacity = Math.max(0, 1 - Math.max(0, t - life * 0.6) / (life * 0.4));
@@ -106,7 +135,11 @@ export function sparkles(at: THREE.Vector3, colors: string[], count = 90, life =
 }
 
 /** Light beam rising from the box in the rarity colour. */
-export function beam(at: THREE.Vector3, color: string, rainbow = false): Effect & { setStrength(s: number): void } {
+export function beam(
+  at: THREE.Vector3,
+  color: string,
+  rainbow = false,
+): Effect & { setStrength(s: number): void } {
   const cv = document.createElement('canvas');
   cv.width = 64;
   cv.height = 256;
@@ -135,7 +168,15 @@ export function beam(at: THREE.Vector3, color: string, rainbow = false): Effect 
   for (let i = 0; i < 3; i++) {
     const geo = new THREE.CylinderGeometry(0.55 + i * 0.18, 0.35 + i * 0.1, 4.5, 32, 1, true);
     geo.translate(0, 2.25, 0);
-    const m = new THREE.MeshBasicMaterial({ map: tex, color: cols[i % cols.length], transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, opacity: 0 });
+    const m = new THREE.MeshBasicMaterial({
+      map: tex,
+      color: cols[i % cols.length],
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      opacity: 0,
+    });
     const mesh = new THREE.Mesh(geo, m);
     mesh.renderOrder = 9;
     group.add(mesh);

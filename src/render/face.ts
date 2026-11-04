@@ -79,7 +79,15 @@ function highlight(c: Ctx, x: number, y: number, r: number): void {
   circle(c, x, y, r);
   fill(c, '#ffffff');
 }
-function closedArc(c: Ctx, x: number, y: number, w: number, up: boolean, k: FaceInk, lw = LINE * 1.15): void {
+function closedArc(
+  c: Ctx,
+  x: number,
+  y: number,
+  w: number,
+  up: boolean,
+  k: FaceInk,
+  lw = LINE * 1.15,
+): void {
   c.beginPath();
   if (up) c.arc(x, y + w * 0.5, w, Math.PI * 1.15, Math.PI * 1.85);
   else c.arc(x, y - w * 0.55, w, Math.PI * 0.15, Math.PI * 0.85);
@@ -103,8 +111,20 @@ function shinyEye(c: Ctx, x: number, y: number, r: number, k: FaceInk, irisFrac 
 }
 
 const EYES: Record<string, Drawer> = {
-  dots: (c, k, o) => both((_, x) => (o.blink ? closedArc(c, x, EYE_Y, 0.07, false, k) : (circle(c, x, EYE_Y, 0.082), fill(c, k.ink), highlight(c, x - 0.026, EYE_Y - 0.03, 0.024)))),
-  shiny: (c, k, o) => both((_, x) => (o.blink ? closedArc(c, x, EYE_Y + 0.02, 0.12, false, k) : shinyEye(c, x, EYE_Y, 0.13, k, 0.75))),
+  dots: (c, k, o) =>
+    both((_, x) =>
+      o.blink
+        ? closedArc(c, x, EYE_Y, 0.07, false, k)
+        : (circle(c, x, EYE_Y, 0.082),
+          fill(c, k.ink),
+          highlight(c, x - 0.026, EYE_Y - 0.03, 0.024)),
+    ),
+  shiny: (c, k, o) =>
+    both((_, x) =>
+      o.blink
+        ? closedArc(c, x, EYE_Y + 0.02, 0.12, false, k)
+        : shinyEye(c, x, EYE_Y, 0.13, k, 0.75),
+    ),
   sleepy: (c, k) =>
     both((s, x) => {
       c.beginPath();
@@ -923,7 +943,13 @@ const CHEEKS: Record<string, Drawer> = {
     }),
 };
 
-export const FACE_DRAWERS = { eyes: EYES, brows: BROWS, mouth: MOUTHS, nose: NOSES, cheeks: CHEEKS };
+export const FACE_DRAWERS = {
+  eyes: EYES,
+  brows: BROWS,
+  mouth: MOUTHS,
+  nose: NOSES,
+  cheeks: CHEEKS,
+};
 
 /** Draws a full face centred at (cx, cy) with unit = `unit` pixels. */
 export function drawFace(

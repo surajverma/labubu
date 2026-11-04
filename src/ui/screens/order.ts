@@ -1,7 +1,19 @@
 import { sfx } from '../../audio/sfx';
 import { generateCharacter } from '../../gen/generate';
 import { LEVELS } from '../../game/levels';
-import { dailyOrder, meets, newRun, reqLabel, scoreRun, SLOTS, specOfRun, spin, variantOf, type Order, type RunState } from '../../game/orders';
+import {
+  dailyOrder,
+  meets,
+  newRun,
+  reqLabel,
+  scoreRun,
+  SLOTS,
+  specOfRun,
+  spin,
+  variantOf,
+  type Order,
+  type RunState,
+} from '../../game/orders';
 import type { MixSlot } from '../../gen/generate';
 import { haptic } from '../../platform';
 import { FaceDrum } from '../../render/faceDrum';
@@ -37,7 +49,16 @@ export class OrderScreen implements Screen {
     this.el = h(
       'div',
       { class: 'screen no-tabs' },
-      h('div', { class: 'topbar', style: 'padding-bottom:4px' }, h('button', { class: 'iconbtn', 'aria-label': 'Back', onclick: () => this.app.back() }, icon('back')), h('h1', { style: 'font-size:20px' }, 'Order')),
+      h(
+        'div',
+        { class: 'topbar', style: 'padding-bottom:4px' },
+        h(
+          'button',
+          { class: 'iconbtn', 'aria-label': 'Back', onclick: () => this.app.back() },
+          icon('back'),
+        ),
+        h('h1', { style: 'font-size:20px' }, 'Order'),
+      ),
       this.card,
       h('div', { class: 'spacer passthrough' }),
       this.slotBar,
@@ -53,14 +74,22 @@ export class OrderScreen implements Screen {
     this.daily = (params?.daily as string) ?? null;
     const lvl = LEVELS.find((l) => l.id === params?.level);
     this.order = this.daily ? dailyOrder(this.daily, this.version) : (lvl ?? LEVELS[0]!);
-    (this.el.querySelector('.topbar h1') as HTMLElement).textContent = this.daily ? 'Daily order' : `${LEVELS.indexOf(this.order) + 1}. ${this.order.title}`;
+    (this.el.querySelector('.topbar h1') as HTMLElement).textContent = this.daily
+      ? 'Daily order'
+      : `${LEVELS.indexOf(this.order) + 1}. ${this.order.title}`;
     this.run = newRun(this.order, cryptoRng, this.version);
     this.done = false;
     this.view.attach();
     this.refreshSpec(false);
     this.app.stage.resetView();
     this.app.stage.gestures = { onTap: () => (this.view.rig?.hop(0.5), sfx.tap()) };
-    requestAnimationFrame(() => this.view.setInsets(this.card.getBoundingClientRect().bottom + 6, window.innerHeight - this.slotBar.getBoundingClientRect().top + 8, 0.8));
+    requestAnimationFrame(() =>
+      this.view.setInsets(
+        this.card.getBoundingClientRect().bottom + 6,
+        window.innerHeight - this.slotBar.getBoundingClientRect().top + 8,
+        0.8,
+      ),
+    );
     if (!this.app.game.save.orders.tutorialDone) setTimeout(() => this.tutorial(), 400);
   }
 
@@ -77,7 +106,13 @@ export class OrderScreen implements Screen {
       const rig = this.view.rig;
       if (rig && oldFace && !this.run.locks.includes('F')) {
         rig.setFaceInstant(oldFace);
-        void rig.spinFace(this.spec.face, { direction: 1, fillers: [], durationMs: 900, onTick: () => sfx.tick(), onLand: () => sfx.land() });
+        void rig.spinFace(this.spec.face, {
+          direction: 1,
+          fillers: [],
+          durationMs: 900,
+          onTick: () => sfx.tick(),
+          onLand: () => sfx.land(),
+        });
       }
     } else this.view.show(this.spec);
     this.renderCard();
@@ -92,13 +127,29 @@ export class OrderScreen implements Screen {
     avatar.style.background = cust.palette.skin;
     const res = scoreRun(this.spec, this.order, this.run.spinsLeft);
     this.card.replaceChildren(
-      h('div', { class: 'row', style: 'gap:10px;margin-bottom:8px' }, avatar, h('div', { style: 'flex:1' }, h('div', { class: 'who' }, `${cust.name} would like…`), h('div', { class: 'muted', style: 'font-size:13px' }, `${res.met} of ${res.total} done`))),
+      h(
+        'div',
+        { class: 'row', style: 'gap:10px;margin-bottom:8px' },
+        avatar,
+        h(
+          'div',
+          { style: 'flex:1' },
+          h('div', { class: 'who' }, `${cust.name} would like…`),
+          h('div', { class: 'muted', style: 'font-size:13px' }, `${res.met} of ${res.total} done`),
+        ),
+      ),
       h(
         'ul',
         { class: 'reqs' },
         ...this.order.reqs.map((r) => {
           const ok = meets(this.spec, r);
-          return h('li', { class: ok ? 'ok' : '' }, h('span', { class: 'tick', 'aria-hidden': 'true' }, ok ? '✓' : '○'), reqLabel(r), h('span', { class: 'sr-only' }, ok ? ' (done)' : ' (not yet)'));
+          return h(
+            'li',
+            { class: ok ? 'ok' : '' },
+            h('span', { class: 'tick', 'aria-hidden': 'true' }, ok ? '✓' : '○'),
+            reqLabel(r),
+            h('span', { class: 'sr-only' }, ok ? ' (done)' : ' (not yet)'),
+          );
         }),
       ),
     );
@@ -110,7 +161,12 @@ export class OrderScreen implements Screen {
         const locked = this.run.locks.includes(s.id);
         return h(
           'button',
-          { class: `slot ${locked ? 'locked' : ''}`, 'aria-pressed': String(locked), 'aria-label': `${locked ? 'Unlock' : 'Lock'} ${s.label}`, onclick: () => this.toggleLock(s.id) },
+          {
+            class: `slot ${locked ? 'locked' : ''}`,
+            'aria-pressed': String(locked),
+            'aria-label': `${locked ? 'Unlock' : 'Lock'} ${s.label}`,
+            onclick: () => this.toggleLock(s.id),
+          },
           h('span', { class: 'ic', 'aria-hidden': 'true' }, s.icon),
           h('span', null, s.label),
           locked ? h('span', { class: 'lk' }, icon('lock', 14)) : null,
@@ -122,9 +178,28 @@ export class OrderScreen implements Screen {
   private renderControls(): void {
     const left = this.run.spinsLeft;
     this.controls.replaceChildren(
-      h('div', { class: 'spins', 'aria-label': `${left} spins left` }, h('b', null, String(left)), h('span', null, 'spins')),
-      h('button', { class: 'btn', disabled: left <= 0 || this.done, style: 'flex:1', onclick: () => this.doSpin() }, icon('spin'), 'Spin'),
-      h('button', { class: 'btn purple', disabled: this.done, onclick: () => this.serve() }, 'Serve'),
+      h(
+        'div',
+        { class: 'spins', 'aria-label': `${left} spins left` },
+        h('b', null, String(left)),
+        h('span', null, 'spins'),
+      ),
+      h(
+        'button',
+        {
+          class: 'btn',
+          disabled: left <= 0 || this.done,
+          style: 'flex:1',
+          onclick: () => this.doSpin(),
+        },
+        icon('spin'),
+        'Spin',
+      ),
+      h(
+        'button',
+        { class: 'btn purple', disabled: this.done, onclick: () => this.serve() },
+        'Serve',
+      ),
     );
   }
 
@@ -152,7 +227,8 @@ export class OrderScreen implements Screen {
     const after = scoreRun(this.spec, this.order, 0).met;
     if (after > before) setTimeout(() => (sfx.coin(), haptic.success()), 500);
     setTimeout(() => (this.busy = false), 450);
-    if (after === this.order.reqs.length) setTimeout(() => this.app.toast('Perfect match! Tap Serve'), 700);
+    if (after === this.order.reqs.length)
+      setTimeout(() => this.app.toast('Perfect match! Tap Serve'), 700);
   }
 
   private serve(): void {
@@ -170,7 +246,8 @@ export class OrderScreen implements Screen {
         coins = res.coins;
         g.save.stats.dailyOrdersPlayed++;
       }
-      if (!prev || res.score > prev.score) g.save.orders.daily[this.daily] = { stars: res.stars, score: res.score };
+      if (!prev || res.score > prev.score)
+        g.save.orders.daily[this.daily] = { stars: res.stars, score: res.score };
     } else {
       const prev = g.save.orders.best[this.order.id] ?? 0;
       // Full coins for new stars, half for replays.
@@ -195,7 +272,10 @@ export class OrderScreen implements Screen {
               onclick: (e: Event) => {
                 if (kept) return;
                 kept = true;
-                const { owned } = g.addCharacter({ seed: this.run.base, v: this.version, variant: variantOf(this.run) }, 'order');
+                const { owned } = g.addCharacter(
+                  { seed: this.run.base, v: this.version, variant: variantOf(this.run) },
+                  'order',
+                );
                 g.changed('order');
                 (e.currentTarget as HTMLButtonElement).disabled = true;
                 (e.currentTarget as HTMLButtonElement).textContent = 'Added to your book!';
@@ -208,15 +288,60 @@ export class OrderScreen implements Screen {
           )
         : null;
     this.app.sheet([
-      h('div', { class: 'result' }, h('div', { class: 'stars', 'aria-label': `${res.stars} stars` }, starsText(res.stars)), h('h3', null, res.stars === 3 ? 'Perfect order!' : res.stars ? 'Order served!' : 'Not quite…')),
-      h('div', { class: 'kv', style: 'justify-content:center;margin-bottom:14px' }, h('b', null, 'Matched'), h('span', null, `${res.met} / ${res.total}`), h('b', null, 'Score'), h('span', null, String(res.score)), h('b', null, 'Coins'), h('span', null, `+${coins}`)),
+      h(
+        'div',
+        { class: 'result' },
+        h('div', { class: 'stars', 'aria-label': `${res.stars} stars` }, starsText(res.stars)),
+        h(
+          'h3',
+          null,
+          res.stars === 3 ? 'Perfect order!' : res.stars ? 'Order served!' : 'Not quite…',
+        ),
+      ),
+      h(
+        'div',
+        { class: 'kv', style: 'justify-content:center;margin-bottom:14px' },
+        h('b', null, 'Matched'),
+        h('span', null, `${res.met} / ${res.total}`),
+        h('b', null, 'Score'),
+        h('span', null, String(res.score)),
+        h('b', null, 'Coins'),
+        h('span', null, `+${coins}`),
+      ),
       h(
         'div',
         { class: 'stack' },
         keepBtn,
-        next && res.stars > 0 ? h('button', { class: 'btn purple block', onclick: () => (this.app.closeModal(), this.app.back(), this.app.push('order', { level: next.id })) }, `Next: ${next.title}`) : null,
-        h('button', { class: 'btn ghost block', onclick: () => (this.app.closeModal(), this.enter(this.daily ? { daily: this.daily } : { level: this.order.id })) }, 'Try again'),
-        h('button', { class: 'btn ghost block', onclick: () => (this.app.closeModal(), this.app.back()) }, 'Back to orders'),
+        next && res.stars > 0
+          ? h(
+              'button',
+              {
+                class: 'btn purple block',
+                onclick: () => (
+                  this.app.closeModal(),
+                  this.app.back(),
+                  this.app.push('order', { level: next.id })
+                ),
+              },
+              `Next: ${next.title}`,
+            )
+          : null,
+        h(
+          'button',
+          {
+            class: 'btn ghost block',
+            onclick: () => (
+              this.app.closeModal(),
+              this.enter(this.daily ? { daily: this.daily } : { level: this.order.id })
+            ),
+          },
+          'Try again',
+        ),
+        h(
+          'button',
+          { class: 'btn ghost block', onclick: () => (this.app.closeModal(), this.app.back()) },
+          'Back to orders',
+        ),
       ),
     ]);
   }
@@ -224,9 +349,18 @@ export class OrderScreen implements Screen {
   private tutorial(): void {
     const steps = [
       ['📝 The order', 'A customer wants a buddy with these things. Each ✓ means it’s done.'],
-      ['🔒 Lock what’s right', 'Tap a part (Face, Hat, Scene…) to lock it. Locked parts don’t change.'],
-      ['🎰 Spin the rest', 'Spin changes everything that isn’t locked. You have a few spins — use them well!'],
-      ['🍽️ Serve', 'Serve when you’re happy. Match everything for 3 stars — and you can keep the buddy!'],
+      [
+        '🔒 Lock what’s right',
+        'Tap a part (Face, Hat, Scene…) to lock it. Locked parts don’t change.',
+      ],
+      [
+        '🎰 Spin the rest',
+        'Spin changes everything that isn’t locked. You have a few spins — use them well!',
+      ],
+      [
+        '🍽️ Serve',
+        'Serve when you’re happy. Match everything for 3 stars — and you can keep the buddy!',
+      ],
     ];
     let i = 0;
     const finish = () => {
@@ -237,7 +371,11 @@ export class OrderScreen implements Screen {
       const [t, d] = steps[i]!;
       const close = this.app.sheet(
         [
-          h('div', { class: 'muted', style: 'font-size:13px;font-weight:700' }, `How to play · ${i + 1}/${steps.length}`),
+          h(
+            'div',
+            { class: 'muted', style: 'font-size:13px;font-weight:700' },
+            `How to play · ${i + 1}/${steps.length}`,
+          ),
           h('h3', null, t!),
           h('p', null, d!),
           h(

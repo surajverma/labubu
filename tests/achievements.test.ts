@@ -13,7 +13,11 @@ describe('achievements', () => {
     expect(newAchievements(s)).toEqual([]);
     s.stats.boxesOpened = 10;
     s.stats.maxStreak = 7;
-    expect(newAchievements(s).map((a) => a.id).sort()).toEqual(['first-box', 'streak-3', 'streak-7', 'ten-boxes']);
+    expect(
+      newAchievements(s)
+        .map((a) => a.id)
+        .sort(),
+    ).toEqual(['first-box', 'streak-3', 'streak-7', 'ten-boxes']);
     s.achievements.push('first-box');
     expect(newAchievements(s).map((a) => a.id)).not.toContain('first-box');
   });

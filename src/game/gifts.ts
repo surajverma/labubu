@@ -65,7 +65,13 @@ function bytesToSeed(b: Uint8Array): string {
 }
 
 async function mac(data: Uint8Array): Promise<Uint8Array> {
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(KEY), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(KEY),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
   const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, new Uint8Array(data)));
   return sig.slice(0, 4);
 }
@@ -108,7 +114,8 @@ export async function encodeGift(g: Gift): Promise<string> {
   return 'GIFT-' + (b32.match(/.{1,4}/g) ?? []).join('-');
 }
 
-export type DecodeResult = { ok: true; gift: Gift } | { ok: false; reason: 'format' | 'checksum' | 'mismatch' };
+export type DecodeResult =
+  { ok: true; gift: Gift } | { ok: false; reason: 'format' | 'checksum' | 'mismatch' };
 
 /** Validates a code. Accepts lower case, spaces, missing dashes and I/1 for L. */
 export async function decodeGift(code: string): Promise<DecodeResult> {
@@ -144,6 +151,7 @@ export async function decodeGift(code: string): Promise<DecodeResult> {
   }
   if (!rarity || v < 1 || v > 15) return { ok: false, reason: 'format' };
   // The stated rarity must match what the seed really generates (catches tampering).
-  if (generateCharacter(seed, v, variant).rarity !== rarity) return { ok: false, reason: 'mismatch' };
+  if (generateCharacter(seed, v, variant).rarity !== rarity)
+    return { ok: false, reason: 'mismatch' };
   return { ok: true, gift: { seed, v, variant, rarity, giftId } };
 }

@@ -28,7 +28,9 @@ export class Thumbnailer {
       }
     }
     try {
-      return this.stage.withContent(bd, rig.root, portraitFraming(rig.height), () => this.stage.snapshot(size, size));
+      return this.stage.withContent(bd, rig.root, portraitFraming(rig.height), () =>
+        this.stage.snapshot(size, size),
+      );
     } finally {
       rig.dispose();
     }

@@ -11,7 +11,10 @@ export const RARITY_ODDS: Record<Rarity, number> = {
 
 export const SECRET_CHANCE = RARITY_ODDS.secret;
 
-export const RARITY_INFO: Record<Rarity, { label: string; color: string; icon: string; rank: number }> = {
+export const RARITY_INFO: Record<
+  Rarity,
+  { label: string; color: string; icon: string; rank: number }
+> = {
   common: { label: 'Common', color: '#9aa0ad', icon: '●', rank: 0 },
   rare: { label: 'Rare', color: '#3f8cff', icon: '◆', rank: 1 },
   epic: { label: 'Epic', color: '#a259ff', icon: '★', rank: 2 },

@@ -10,8 +10,22 @@ export const TALL_EARS = new Set(['bunny', 'horns', 'tufts', 'fox', 'antlers', '
 export const SIDE_EARS = new Set(['pointy', 'floppy', 'fins', 'wings', 'mouse']);
 /** Hats that cover the crown of the head. */
 export const CROWN_HATS = new Set([
-  'bucket', 'beanie', 'crown', 'pirate', 'cap', 'tophat', 'party', 'chef', 'beret', 'propeller',
-  'witch', 'cowboy', 'viking', 'santa', 'straw', 'frog',
+  'bucket',
+  'beanie',
+  'crown',
+  'pirate',
+  'cap',
+  'tophat',
+  'party',
+  'chef',
+  'beret',
+  'propeller',
+  'witch',
+  'cowboy',
+  'viking',
+  'santa',
+  'straw',
+  'frog',
 ]);
 export const TALL_HATS = new Set(['tophat', 'chef', 'party', 'witch', 'crown']);
 export const HELMET_OUTFITS = new Set(['astronaut', 'diver']);

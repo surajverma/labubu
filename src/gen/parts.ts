@@ -8,7 +8,14 @@ import type { Layer, PartDef } from './types';
  *
  * Weight guide: 10 common · 6 uncommon · 3 rare · 1.5 very rare · 0.6 ultra rare.
  */
-const P = (id: string, name: string, weight: number, tags: string[], since = 1, secretOnly = false): PartDef => ({
+const P = (
+  id: string,
+  name: string,
+  weight: number,
+  tags: string[],
+  since = 1,
+  secretOnly = false,
+): PartDef => ({
   id,
   name,
   weight,
@@ -243,7 +250,13 @@ export const PARTS: Record<Layer, PartDef[]> = {
   ],
 };
 
-export const FINISHES: { id: import('./types').Finish; weight: number; since: number; secretOnly?: boolean; tags: string[] }[] = [
+export const FINISHES: {
+  id: import('./types').Finish;
+  weight: number;
+  since: number;
+  secretOnly?: boolean;
+  tags: string[];
+}[] = [
   { id: 'glossy', weight: 10, since: 1, tags: ['glossy'] },
   { id: 'matte', weight: 6, since: 1, tags: ['matte'] },
   { id: 'galaxy', weight: 1, since: 1, secretOnly: true, tags: ['galaxy', 'space', 'sparkly'] },
@@ -267,6 +280,7 @@ export function partName(layer: Layer, id: string): string {
 /** All tags that appear anywhere (for orders and sets). */
 export function allTags(version: number): Set<string> {
   const s = new Set<string>();
-  for (const layer of Object.keys(PARTS) as Layer[]) for (const p of partsFor(layer, version, true)) p.tags.forEach((t) => s.add(t));
+  for (const layer of Object.keys(PARTS) as Layer[])
+    for (const p of partsFor(layer, version, true)) p.tags.forEach((t) => s.add(t));
   return s;
 }

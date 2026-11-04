@@ -86,7 +86,12 @@ export class CollectionScreen implements Screen {
     } else if (f !== 'all') list = list.filter((c) => specFor(c).rarity === f);
     if (this.sort === 'newest') list.sort((a, b) => b.foundAt - a.foundAt);
     else if (this.sort === 'oldest') list.sort((a, b) => a.foundAt - b.foundAt);
-    else list.sort((a, b) => rarityRank(specFor(b).rarity) - rarityRank(specFor(a).rarity) || specFor(b).score - specFor(a).score);
+    else
+      list.sort(
+        (a, b) =>
+          rarityRank(specFor(b).rarity) - rarityRank(specFor(a).rarity) ||
+          specFor(b).score - specFor(a).score,
+      );
 
     if (!col.length) {
       this.body.append(
@@ -95,13 +100,20 @@ export class CollectionScreen implements Screen {
           { class: 'empty' },
           h('div', { class: 'big' }, '📖'),
           h('p', null, 'Your book is empty. Open a blind box to find your first buddy!'),
-          h('button', { class: 'btn', onclick: () => this.app.go('box') }, icon('gift'), 'Open a box'),
+          h(
+            'button',
+            { class: 'btn', onclick: () => this.app.go('box') },
+            icon('gift'),
+            'Open a box',
+          ),
         ),
       );
       return;
     }
     if (!list.length) {
-      this.body.append(h('div', { class: 'empty' }, h('p', null, 'No buddies match this filter yet.')));
+      this.body.append(
+        h('div', { class: 'empty' }, h('p', null, 'No buddies match this filter yet.')),
+      );
       return;
     }
     const dupes = this.app.game.duplicatesValue();
@@ -110,13 +122,26 @@ export class CollectionScreen implements Screen {
         h(
           'div',
           { class: 'card row', style: 'margin-bottom:12px;padding:10px 14px' },
-          h('div', { style: 'flex:1;font-weight:600' }, `${dupes.copies} duplicate${dupes.copies > 1 ? 's' : ''}`, h('div', { class: 'muted', style: 'font-size:13px;font-weight:500' }, 'Keeps one of each. Secrets are never recycled.')),
+          h(
+            'div',
+            { style: 'flex:1;font-weight:600' },
+            `${dupes.copies} duplicate${dupes.copies > 1 ? 's' : ''}`,
+            h(
+              'div',
+              { class: 'muted', style: 'font-size:13px;font-weight:500' },
+              'Keeps one of each. Secrets are never recycled.',
+            ),
+          ),
           h(
             'button',
             {
               class: 'btn small',
               onclick: async () => {
-                const ok = await this.app.confirm('Recycle duplicates?', `You keep one of every buddy and get ${dupes.coins} coins for the ${dupes.copies} extra copies.`, `Recycle for ${dupes.coins}`);
+                const ok = await this.app.confirm(
+                  'Recycle duplicates?',
+                  `You keep one of every buddy and get ${dupes.coins} coins for the ${dupes.copies} extra copies.`,
+                  `Recycle for ${dupes.coins}`,
+                );
                 if (!ok) return;
                 const got = this.app.game.recycleAllDuplicates();
                 this.app.toast(`+${got} coins`);
@@ -150,7 +175,12 @@ export class CollectionScreen implements Screen {
     const spec = specFor(o);
     const t = h(
       'button',
-      { class: `tile r-${spec.rarity}`, 'data-uid': o.uid, 'aria-label': `${displayName(o)}, ${spec.rarity}`, onclick: () => (this.app.tap(), this.app.push('detail', { uid: o.uid })) },
+      {
+        class: `tile r-${spec.rarity}`,
+        'data-uid': o.uid,
+        'aria-label': `${displayName(o)}, ${spec.rarity}`,
+        onclick: () => (this.app.tap(), this.app.push('detail', { uid: o.uid })),
+      },
       h('div', { class: 'shimmer' }),
       o.favourite ? h('span', { class: 'fav' }, icon('heart', 18)) : null,
       o.count > 1 ? h('span', { class: 'count' }, `×${o.count}`) : null,
@@ -182,7 +212,14 @@ export class CollectionScreen implements Screen {
     }
     for (const o of opts)
       this.filtersEl.append(
-        h('button', { class: this.filter === o.id ? 'on' : '', onclick: () => (this.app.tap(), (this.filter = o.id), this.render()) }, o.label),
+        h(
+          'button',
+          {
+            class: this.filter === o.id ? 'on' : '',
+            onclick: () => (this.app.tap(), (this.filter = o.id), this.render()),
+          },
+          o.label,
+        ),
       );
     const sorts: { id: Sort; label: string }[] = [
       { id: 'newest', label: 'Newest' },
@@ -218,7 +255,12 @@ export class CollectionScreen implements Screen {
           {
             class: `card setcard ${done ? 'done' : ''}`,
             style: 'border:none;text-align:left;width:100%;cursor:pointer',
-            onclick: () => (this.app.tap(), (this.filter = `set:${set.id}`), (this.view = 'buddies'), this.render()),
+            onclick: () => (
+              this.app.tap(),
+              (this.filter = `set:${set.id}`),
+              (this.view = 'buddies'),
+              this.render()
+            ),
           },
           h('div', { class: 'badge', 'aria-hidden': 'true' }, set.icon),
           h(
@@ -226,7 +268,16 @@ export class CollectionScreen implements Screen {
             { style: 'flex:1;min-width:0' },
             h('div', { class: 't' }, set.name, done ? ' ✓' : ''),
             h('div', { class: 'd' }, set.description),
-            h('div', { class: 'progress', role: 'progressbar', 'aria-valuenow': String(p.have), 'aria-valuemax': String(p.need) }, h('div', { style: `width:${(100 * p.have) / p.need}%` })),
+            h(
+              'div',
+              {
+                class: 'progress',
+                role: 'progressbar',
+                'aria-valuenow': String(p.have),
+                'aria-valuemax': String(p.need),
+              },
+              h('div', { style: `width:${(100 * p.have) / p.need}%` }),
+            ),
           ),
           h('div', { style: 'font-family:var(--display);font-weight:700' }, `${p.have}/${p.need}`),
         ),

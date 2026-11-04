@@ -3,10 +3,18 @@ import { Share } from '@capacitor/share';
 import { isNative } from './platform';
 
 /** Opens the share sheet with an image (native), Web Share, or a download fallback. */
-export async function shareImage(cv: HTMLCanvasElement, fileName: string, text: string): Promise<void> {
+export async function shareImage(
+  cv: HTMLCanvasElement,
+  fileName: string,
+  text: string,
+): Promise<void> {
   const dataUrl = cv.toDataURL('image/png');
   if (isNative) {
-    const res = await Filesystem.writeFile({ path: fileName, data: dataUrl.split(',')[1]!, directory: Directory.Cache });
+    const res = await Filesystem.writeFile({
+      path: fileName,
+      data: dataUrl.split(',')[1]!,
+      directory: Directory.Cache,
+    });
     await Share.share({ title: text, text, files: [res.uri], dialogTitle: 'Share your buddy' });
     return;
   }

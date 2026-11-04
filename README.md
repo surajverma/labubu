@@ -100,6 +100,19 @@ are lost, updates can never be installed over the old app or published to the Pl
 > The cloud development sessions cannot run Gradle (Google's Maven is blocked there), so
 > APKs are only built by GitHub Actions.
 
+## Publishing on Google Play
+
+Everything for the listing is in `store/`: `listing.md` (texts), `data-safety.md`,
+`content-rating.md`, `release-notes.md`, `graphics/` (512 icon, 1024×500 feature graphic)
+and `screenshots/` (8 framed 1080×1920 shots, regenerate with
+`node scripts/store-screens.mjs`). The privacy policy is `docs/privacy.md` — enable
+**GitHub Pages** (Settings → Pages → deploy from branch, folder `/docs`) to get a public
+URL for the Play Console.
+
+The signed **AAB** (`SpinBuddies-aab` artifact) is built once the signing secrets exist.
+The app targets Android API 36 (Capacitor 8 / AGP 8.13), which meets the current Play
+target-SDK requirement.
+
 ## Licence
 
 MIT — see `LICENSE`. Third-party libraries and the font are listed in `CREDITS.md`.

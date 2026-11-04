@@ -15,12 +15,20 @@ interface ExportFile {
 }
 
 function checksum(json: string): string {
-  return hashString(json).map((n) => n.toString(16).padStart(8, '0')).join('');
+  return hashString(json)
+    .map((n) => n.toString(16).padStart(8, '0'))
+    .join('');
 }
 
 export function serializeSave(save: SaveData): string {
   const json = JSON.stringify(save);
-  const file: ExportFile = { app: APP.name, kind: 'save', exportedAt: new Date().toISOString(), checksum: checksum(json), save };
+  const file: ExportFile = {
+    app: APP.name,
+    kind: 'save',
+    exportedAt: new Date().toISOString(),
+    checksum: checksum(json),
+    save,
+  };
   return JSON.stringify(file, null, 1);
 }
 
@@ -32,8 +40,10 @@ export function parseSaveFile(text: string): SaveData {
   } catch {
     throw new Error('That file isn’t a SpinBuddies save.');
   }
-  if (!file || file.kind !== 'save' || !file.save) throw new Error('That file isn’t a SpinBuddies save.');
-  if (checksum(JSON.stringify(file.save)) !== file.checksum) throw new Error('The save file looks damaged or was edited.');
+  if (!file || file.kind !== 'save' || !file.save)
+    throw new Error('That file isn’t a SpinBuddies save.');
+  if (checksum(JSON.stringify(file.save)) !== file.checksum)
+    throw new Error('The save file looks damaged or was edited.');
   return migrate(file.save);
 }
 
@@ -41,8 +51,18 @@ export async function exportSave(save: SaveData): Promise<'shared' | 'downloaded
   const text = serializeSave(save);
   const name = `spinbuddies-save-${new Date().toISOString().slice(0, 10)}.json`;
   if (isNative) {
-    const res = await Filesystem.writeFile({ path: name, data: text, directory: Directory.Cache, encoding: Encoding.UTF8 });
-    await Share.share({ title: `${APP.name} save`, text: 'My SpinBuddies save file — keep it safe!', files: [res.uri], dialogTitle: 'Save or send your backup' });
+    const res = await Filesystem.writeFile({
+      path: name,
+      data: text,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+    });
+    await Share.share({
+      title: `${APP.name} save`,
+      text: 'My SpinBuddies save file — keep it safe!',
+      files: [res.uri],
+      dialogTitle: 'Save or send your backup',
+    });
     return 'shared';
   }
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));

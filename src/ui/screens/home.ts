@@ -33,7 +33,11 @@ export class HomeScreen implements Screen {
 
   constructor(private app: App) {
     this.view = new CharacterView(app.stage);
-    this.resetBtn = h('button', { class: 'iconbtn', 'aria-label': 'Back to my buddy', onclick: () => this.reset() }, icon('back', 22));
+    this.resetBtn = h(
+      'button',
+      { class: 'iconbtn', 'aria-label': 'Back to my buddy', onclick: () => this.reset() },
+      icon('back', 22),
+    );
     const mode = seg(
       [
         { id: 'face', label: 'Face only' },
@@ -49,7 +53,12 @@ export class HomeScreen implements Screen {
     this.el = h(
       'div',
       { class: 'screen' },
-      h('div', { class: 'topbar' }, h('div', { class: 'logo' }, 'Spin', h('span', null, 'Buddies')), this.boxesEl),
+      h(
+        'div',
+        { class: 'topbar' },
+        h('div', { class: 'logo' }, 'Spin', h('span', null, 'Buddies')),
+        this.boxesEl,
+      ),
       h('div', { class: 'nameplate' }, this.nameEl, this.subEl),
       h('div', { class: 'spacer passthrough' }),
       h(
@@ -57,7 +66,17 @@ export class HomeScreen implements Screen {
         { class: 'stack', style: 'align-items:center;padding:0 16px' },
         h('div', { class: 'hint' }, 'Swipe the face up or down — or shake!'),
         h('div', { class: 'row' }, this.resetBtn, mode),
-        h('button', { class: 'btn', style: 'min-width:220px', onclick: () => this.spin(1), 'aria-label': 'Spin' }, icon('spin', 24), 'Spin!'),
+        h(
+          'button',
+          {
+            class: 'btn',
+            style: 'min-width:220px',
+            onclick: () => this.spin(1),
+            'aria-label': 'Spin',
+          },
+          icon('spin', 24),
+          'Spin!',
+        ),
       ),
     );
   }
@@ -71,7 +90,10 @@ export class HomeScreen implements Screen {
     this.view.attach();
     this.view.setInsets(150, 250);
     this.view.show(this.spec);
-    this.renderName(home ? displayName(home) : `${APP.mascotName}`, home ? undefined : 'Your guide');
+    this.renderName(
+      home ? displayName(home) : `${APP.mascotName}`,
+      home ? undefined : 'Your guide',
+    );
     this.resetBtn.style.visibility = 'hidden';
     this.app.stage.resetView();
     this.app.stage.gestures = {
@@ -85,8 +107,9 @@ export class HomeScreen implements Screen {
     void requestMotionPermission().then((ok) => {
       if (ok) this.stopShake = watchShake(() => this.spin(1));
     });
-    if (!g.save.collection.length && g.save.boxes > 0) this.hintTimer = window.setTimeout(() => {
-        if (this.app.currentId !== 'home' || hintShown) return;
+    if (!g.save.collection.length && g.save.boxes > 0)
+      this.hintTimer = window.setTimeout(() => {
+        if (this.app.currentId !== 'home' || hintShown || this.app.hasModal) return;
         hintShown = true;
         this.app.toast('Tap “Boxes” to open your first blind box!');
       }, 1500);
@@ -103,7 +126,24 @@ export class HomeScreen implements Screen {
 
   private updateBoxes(): void {
     const s = this.app.game.save;
-    this.boxesEl.replaceChildren(h('div', { class: 'row', style: 'gap:6px' }, h('button', { class: 'iconbtn', style: 'width:40px;height:40px', 'aria-label': 'Profile', onclick: () => (this.app.tap(), this.app.push('profile')) }, icon('user', 20)), counter('coins', s.coins, () => this.app.go('box')), counter('boxes', s.boxes, () => this.app.go('box'))));
+    this.boxesEl.replaceChildren(
+      h(
+        'div',
+        { class: 'row', style: 'gap:6px' },
+        h(
+          'button',
+          {
+            class: 'iconbtn',
+            style: 'width:40px;height:40px',
+            'aria-label': 'Profile',
+            onclick: () => (this.app.tap(), this.app.push('profile')),
+          },
+          icon('user', 20),
+        ),
+        counter('coins', s.coins, () => this.app.go('box')),
+        counter('boxes', s.boxes, () => this.app.go('box')),
+      ),
+    );
   }
 
   private renderName(name: string, note?: string): void {
@@ -133,7 +173,10 @@ export class HomeScreen implements Screen {
     }
     const key = `${this.spec.seed}:${Date.now()}:${this.spinCount}`;
     const face = randomFace(key, this.spec.generatorVersion);
-    const fillers = [randomFace(key + 'a', this.spec.generatorVersion), randomFace(key + 'b', this.spec.generatorVersion)];
+    const fillers = [
+      randomFace(key + 'a', this.spec.generatorVersion),
+      randomFace(key + 'b', this.spec.generatorVersion),
+    ];
     void rig.spinFace(face, {
       direction,
       fillers,

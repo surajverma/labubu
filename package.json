@@ -1,7 +1,7 @@
 {
   "name": "spinbuddies",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "SpinBuddies \u2014 a collectible blind-box vinyl toy app",
   "scripts": {
@@ -10,7 +10,7 @@
     "preview": "vite preview --port 4173 --strictPort",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src tests",
+    "lint": "eslint src tests && prettier --check src tests",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "shots": "node scripts/screens.mjs",

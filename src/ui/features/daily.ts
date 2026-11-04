@@ -3,7 +3,11 @@ import { claimDaily, dailyStatus, touchClock } from '../../game/daily';
 import { streakReward } from '../../game/economy';
 import { dayKey } from '../../game/time';
 import { haptic, isNative } from '../../platform';
-import { notificationPermission, requestNotificationPermission, scheduleDailyReminder } from '../../notify';
+import {
+  notificationPermission,
+  requestNotificationPermission,
+  scheduleDailyReminder,
+} from '../../notify';
 import type { App } from '../app';
 import { h, icon } from '../dom';
 import { toggle } from '../widgets';
@@ -19,7 +23,8 @@ export function checkDaily(app: App): void {
   const st = dailyStatus(g.save.daily, now);
   g.save.daily = touchClock(g.save.daily, now);
   if (st.kind === 'clock') {
-    if (!clockWarned) app.toast('Your phone’s clock moved back — the next daily box comes when it catches up.');
+    if (!clockWarned)
+      app.toast('Your phone’s clock moved back — the next daily box comes when it catches up.');
     clockWarned = true;
     return;
   }
@@ -29,26 +34,50 @@ export function checkDaily(app: App): void {
   }
   sheetOpen = true;
   const day = ((st.streak - 1) % 7) + 1;
-  const track = h('div', { class: 'streak', role: 'list', 'aria-label': `Streak day ${st.streak}` });
+  const track = h('div', {
+    class: 'streak',
+    role: 'list',
+    'aria-label': `Streak day ${st.streak}`,
+  });
   for (let d = 1; d <= 7; d++) {
     const r = streakReward(d);
     const label = r.premium ? 'Premium' : r.boxes > 1 ? `×${r.boxes}` : '×1';
     track.append(
       h(
         'div',
-        { class: `sday ${d < day ? 'past' : d === day ? 'today' : ''} ${r.premium ? 'prem' : ''}`, role: 'listitem', 'aria-label': `Day ${d}: ${label}` },
-        h('div', { class: 'sicon' }, d < day ? icon('check', 18) : icon(r.premium ? 'star' : 'gift', 18)),
+        {
+          class: `sday ${d < day ? 'past' : d === day ? 'today' : ''} ${r.premium ? 'prem' : ''}`,
+          role: 'listitem',
+          'aria-label': `Day ${d}: ${label}`,
+        },
+        h(
+          'div',
+          { class: 'sicon' },
+          d < day ? icon('check', 18) : icon(r.premium ? 'star' : 'gift', 18),
+        ),
         h('div', { class: 'slabel' }, `Day ${d}`),
         h('div', { class: 'sreward' }, label),
       ),
     );
   }
   const rw = st.reward;
-  const parts = [rw.boxes ? `${rw.boxes} box${rw.boxes > 1 ? 'es' : ''}` : '', rw.premium ? '1 Premium box' : '', `${rw.coins} coins`].filter(Boolean).join(' + ');
+  const parts = [
+    rw.boxes ? `${rw.boxes} box${rw.boxes > 1 ? 'es' : ''}` : '',
+    rw.premium ? '1 Premium box' : '',
+    `${rw.coins} coins`,
+  ]
+    .filter(Boolean)
+    .join(' + ');
   const close = app.sheet(
     [
       h('h3', null, st.streak > 1 ? `Day ${st.streak} streak! 🔥` : 'Your daily gift 🎁'),
-      st.freeze ? h('p', { class: 'muted', style: 'margin-top:-6px' }, 'You missed a day, so your weekly streak freeze kicked in. Streak saved!') : null,
+      st.freeze
+        ? h(
+            'p',
+            { class: 'muted', style: 'margin-top:-6px' },
+            'You missed a day, so your weekly streak freeze kicked in. Streak saved!',
+          )
+        : null,
       track,
       h('p', { style: 'text-align:center;font-weight:600' }, `Today: ${parts}`),
       h(
@@ -85,58 +114,73 @@ export function checkDaily(app: App): void {
 
 async function maybeAskNotifications(app: App): Promise<void> {
   const g = app.game;
-  if (!isNative || !g.save.settings.notifications || g.save.seen.includes('notif-ask')) return void reschedule(app);
+  if (!isNative || !g.save.settings.notifications || g.save.seen.includes('notif-ask'))
+    return void reschedule(app);
   if ((await notificationPermission()) !== 'prompt') {
     g.save.seen.push('notif-ask');
     return void reschedule(app);
   }
   const hour = g.save.settings.notifyHour;
-  const close = app.sheet([
-    h('h3', null, 'Want a reminder?'),
-    h('p', null, `We can send one little note at ${fmtHour(hour)} when your free box is ready. Never more than one a day.`),
-    h(
-      'div',
-      { class: 'stack' },
+  const close = app.sheet(
+    [
+      h('h3', null, 'Want a reminder?'),
       h(
-        'button',
-        {
-          class: 'btn purple block',
-          onclick: async () => {
-            close();
-            const ok = await requestNotificationPermission();
-            if (!ok) g.save.settings.notifications = false;
-            g.changed('settings');
-            void reschedule(app);
-          },
-        },
-        'Yes please',
+        'p',
+        null,
+        `We can send one little note at ${fmtHour(hour)} when your free box is ready. Never more than one a day.`,
       ),
       h(
-        'button',
-        {
-          class: 'btn ghost block',
-          onclick: () => {
-            g.save.settings.notifications = false;
-            g.changed('settings');
-            close();
+        'div',
+        { class: 'stack' },
+        h(
+          'button',
+          {
+            class: 'btn purple block',
+            onclick: async () => {
+              close();
+              const ok = await requestNotificationPermission();
+              if (!ok) g.save.settings.notifications = false;
+              g.changed('settings');
+              void reschedule(app);
+            },
           },
-        },
-        'No thanks',
+          'Yes please',
+        ),
+        h(
+          'button',
+          {
+            class: 'btn ghost block',
+            onclick: () => {
+              g.save.settings.notifications = false;
+              g.changed('settings');
+              close();
+            },
+          },
+          'No thanks',
+        ),
       ),
-    ),
-  ], () => {
-    if (!g.save.seen.includes('notif-ask')) g.save.seen.push('notif-ask');
-    g.changed('seen');
-  });
+    ],
+    () => {
+      if (!g.save.seen.includes('notif-ask')) g.save.seen.push('notif-ask');
+      g.changed('seen');
+    },
+  );
 }
 
 export function reschedule(app: App): Promise<void> {
   const s = app.game.save;
-  return scheduleDailyReminder({ enabled: s.settings.notifications, hour: s.settings.notifyHour, claimedToday: s.daily.lastClaimDay === dayKey(Date.now()) });
+  return scheduleDailyReminder({
+    enabled: s.settings.notifications,
+    hour: s.settings.notifyHour,
+    claimedToday: s.daily.lastClaimDay === dayKey(Date.now()),
+  });
 }
 
 export function fmtHour(h: number): string {
-  return new Date(2000, 0, 1, h).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  return new Date(2000, 0, 1, h).toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
 const HOURS = [8, 12, 16, 18, 19, 20];
@@ -171,7 +215,16 @@ SETTINGS_SECTIONS.push((app, rerender) => {
             set();
           },
         },
-        h('span', { class: 'label' }, 'Daily box reminder', h('div', { class: 'muted', style: 'font-size:13px;font-weight:500' }, 'One notification when your free box is ready')),
+        h(
+          'span',
+          { class: 'label' },
+          'Daily box reminder',
+          h(
+            'div',
+            { class: 'muted', style: 'font-size:13px;font-weight:500' },
+            'One notification when your free box is ready',
+          ),
+        ),
         toggle(s.notifications),
       ),
       h(

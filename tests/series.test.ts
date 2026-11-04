@@ -10,7 +10,8 @@ describe('series pools', () => {
     expect(p.entries.length).toBe(1000);
     for (const [r, n] of Object.entries(q)) expect(p.byTier[r as keyof typeof q].length).toBe(n);
     expect(new Set(p.entries.map((e) => e.seed)).size).toBe(1000);
-    for (const e of p.entries.slice(0, 50)) expect(generateCharacter(e.seed, 1).rarity).toBe(e.rarity);
+    for (const e of p.entries.slice(0, 50))
+      expect(generateCharacter(e.seed, 1).rarity).toBe(e.rarity);
     expect(p.entries[0]!.index).toBe(1);
   });
   it('premium boxes never give commons', () => {

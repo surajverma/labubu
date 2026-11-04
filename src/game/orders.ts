@@ -5,7 +5,8 @@ import { FACE_LAYERS } from '../gen/types';
 import { pick, randomSeed, rngFromString, type Rng } from '../rng';
 import { ECONOMY } from './economy';
 
-export type ReqSlot = 'face' | 'ears' | 'hat' | 'outfit' | 'accessory' | 'scene' | 'color' | 'body' | 'any';
+export type ReqSlot =
+  'face' | 'ears' | 'hat' | 'outfit' | 'accessory' | 'scene' | 'color' | 'body' | 'any';
 
 export interface Requirement {
   slot: ReqSlot;
@@ -38,7 +39,16 @@ export const SLOTS: { id: MixSlot; label: string; icon: string }[] = [
   { id: 'B', label: 'Shape', icon: '🫘' },
 ];
 
-const REQ_TO_SLOT: Record<Exclude<ReqSlot, 'any'>, MixSlot> = { face: 'F', ears: 'E', hat: 'H', outfit: 'O', accessory: 'A', scene: 'S', color: 'C', body: 'B' };
+const REQ_TO_SLOT: Record<Exclude<ReqSlot, 'any'>, MixSlot> = {
+  face: 'F',
+  ears: 'E',
+  hat: 'H',
+  outfit: 'O',
+  accessory: 'A',
+  scene: 'S',
+  color: 'C',
+  body: 'B',
+};
 
 function partTags(layer: Layer, id: string): readonly string[] {
   return partById(layer, id)?.tags ?? [];
@@ -73,19 +83,74 @@ export function meets(s: CharacterSpec, r: Requirement): boolean {
 
 // --- Labels ("sleepy face · pirate hat · snowy scene · something red") ---
 const ADJ: Record<string, string> = {
-  snow: 'snowy', ocean: 'sea', nature: 'leafy', space: 'space', sweet: 'sweet', food: 'foodie', sky: 'sky', city: 'city',
-  cozy: 'cozy', angry: 'grumpy', love: 'loving', sparkly: 'sparkly', magic: 'magic', royal: 'royal', party: 'party',
-  sporty: 'sporty', fancy: 'fancy', pirate: 'pirate', beach: 'beach', rain: 'rainy-day', school: 'school', hero: 'hero',
-  animal: 'animal', sleepy: 'sleepy', happy: 'happy', cheeky: 'cheeky', silly: 'silly', cool: 'cool', cute: 'cute',
-  shy: 'shy', sad: 'teary', surprised: 'surprised', calm: 'calm', spooky: 'spooky', night: 'night-time', studio: 'studio',
-  chubby: 'chubby', tall: 'tall', flower: 'flowery', cat: 'cat', bunny: 'bunny', bear: 'bear', music: 'musical', art: 'arty',
+  snow: 'snowy',
+  ocean: 'sea',
+  nature: 'leafy',
+  space: 'space',
+  sweet: 'sweet',
+  food: 'foodie',
+  sky: 'sky',
+  city: 'city',
+  cozy: 'cozy',
+  angry: 'grumpy',
+  love: 'loving',
+  sparkly: 'sparkly',
+  magic: 'magic',
+  royal: 'royal',
+  party: 'party',
+  sporty: 'sporty',
+  fancy: 'fancy',
+  pirate: 'pirate',
+  beach: 'beach',
+  rain: 'rainy-day',
+  school: 'school',
+  hero: 'hero',
+  animal: 'animal',
+  sleepy: 'sleepy',
+  happy: 'happy',
+  cheeky: 'cheeky',
+  silly: 'silly',
+  cool: 'cool',
+  cute: 'cute',
+  shy: 'shy',
+  sad: 'teary',
+  surprised: 'surprised',
+  calm: 'calm',
+  spooky: 'spooky',
+  night: 'night-time',
+  studio: 'studio',
+  chubby: 'chubby',
+  tall: 'tall',
+  flower: 'flowery',
+  cat: 'cat',
+  bunny: 'bunny',
+  bear: 'bear',
+  music: 'musical',
+  art: 'arty',
 };
-const NOUN: Record<Exclude<ReqSlot, 'any' | 'color'>, string> = { face: 'face', ears: 'ears', hat: 'hat', outfit: 'outfit', accessory: 'thing to hold', scene: 'scene', body: 'body' };
+const NOUN: Record<Exclude<ReqSlot, 'any' | 'color'>, string> = {
+  face: 'face',
+  ears: 'ears',
+  hat: 'hat',
+  outfit: 'outfit',
+  accessory: 'thing to hold',
+  scene: 'scene',
+  body: 'body',
+};
 
 export function reqLabel(r: Requirement): string {
   if (r.slot === 'color') return `something ${r.tag}`;
   if (r.slot === 'any') return `something ${ADJ[r.tag] ?? r.tag}`;
-  if (r.tag === '*') return { hat: 'any hat', outfit: 'any outfit', accessory: 'holding something', ears: 'ears or horns', face: 'a face', scene: 'any scene', body: 'any body' }[r.slot];
+  if (r.tag === '*')
+    return {
+      hat: 'any hat',
+      outfit: 'any outfit',
+      accessory: 'holding something',
+      ears: 'ears or horns',
+      face: 'a face',
+      scene: 'any scene',
+      body: 'any body',
+    }[r.slot];
   return `${ADJ[r.tag] ?? r.tag} ${NOUN[r.slot]}`;
 }
 
@@ -111,7 +176,13 @@ export function metCount(s: CharacterSpec, o: Order): number {
 
 /** Which requirements a slot can influence. */
 function slotReqs(o: Order, slot: MixSlot): Requirement[] {
-  return o.reqs.filter((r) => r.slot === 'any' || (r.slot === 'color' ? slot === 'C' || slot === 'O' || slot === 'H' || slot === 'A' : REQ_TO_SLOT[r.slot] === slot));
+  return o.reqs.filter(
+    (r) =>
+      r.slot === 'any' ||
+      (r.slot === 'color'
+        ? slot === 'C' || slot === 'O' || slot === 'H' || slot === 'A'
+        : REQ_TO_SLOT[r.slot] === slot),
+  );
 }
 
 /**
@@ -166,7 +237,9 @@ export function scoreRun(s: CharacterSpec, o: Order, spinsLeft: number): Result 
   const total = o.reqs.length;
   const E = ECONOMY.orders;
   const all = met === total;
-  const score = met * E.pointsPerRequirement + (all ? E.pointsPerRequirement + spinsLeft * E.pointsPerSpare : 0);
+  const score =
+    met * E.pointsPerRequirement +
+    (all ? E.pointsPerRequirement + spinsLeft * E.pointsPerSpare : 0);
   const stars: Result['stars'] = all ? 3 : met >= total - 1 ? 2 : met * 2 >= total ? 1 : 0;
   return { met, total, score, stars, coins: stars * o.multiplier };
 }
@@ -188,8 +261,18 @@ function slotCandidates(slot: MixSlot, version: number): string[] {
     const g = generateCharacter(seed, version);
     const val =
       slot === 'C'
-        ? g.palette.colorTags.join(',') + '|' + [g.palette.skin, g.palette.outfit, g.palette.hat, g.palette.accent].map((c) => c.slice(1, 2)).join('')
-        : layers.map((l) => ((FACE_LAYERS as readonly string[]).includes(l) ? g.face[l as (typeof FACE_LAYERS)[number]] : (g as unknown as Record<string, string>)[l])).join('|');
+        ? g.palette.colorTags.join(',') +
+          '|' +
+          [g.palette.skin, g.palette.outfit, g.palette.hat, g.palette.accent]
+            .map((c) => c.slice(1, 2))
+            .join('')
+        : layers
+            .map((l) =>
+              (FACE_LAYERS as readonly string[]).includes(l)
+                ? g.face[l as (typeof FACE_LAYERS)[number]]
+                : (g as unknown as Record<string, string>)[l],
+            )
+            .join('|');
     if (!seen.has(val)) seen.set(val, seed);
   }
   const out = [...seen.values()];
@@ -201,9 +284,14 @@ function slotCandidates(slot: MixSlot, version: number): string[] {
  * Searches slot assignments (with the compatibility rules applied) for one that meets every
  * requirement. Returns the winning slot seeds, or null if the order is impossible.
  */
-export function solve(o: Order, version: number, base = 'SOLV-ER22'): Partial<Record<MixSlot, string>> | null {
+export function solve(
+  o: Order,
+  version: number,
+  base = 'SOLV-ER22',
+): Partial<Record<MixSlot, string>> | null {
   // Colour last: it can also be satisfied by outfit/hat/accessory colours.
-  const own = (slot: MixSlot) => o.reqs.filter((r) => r.slot !== 'any' && REQ_TO_SLOT[r.slot] === slot);
+  const own = (slot: MixSlot) =>
+    o.reqs.filter((r) => r.slot !== 'any' && REQ_TO_SLOT[r.slot] === slot);
   const direct = SLOTS.map((x) => x.id).filter((id) => slotReqs(o, id).length);
   // Slots that can break other requirements through compatibility rules (hats hide top
   // ears, helmets remove hats and ears) must be searchable too.
@@ -220,14 +308,19 @@ export function solve(o: Order, version: number, base = 'SOLV-ER22'): Partial<Re
   let tries = 0;
   const dfs = (i: number): boolean => {
     if (++tries > 40000) return false;
-    if (i === relevant.length) return metCount(generateCharacter(base, version, encodeMix(assign)), o) === o.reqs.length;
+    if (i === relevant.length)
+      return metCount(generateCharacter(base, version, encodeMix(assign)), o) === o.reqs.length;
     const slot = relevant[i]!;
     const mine = own(slot);
     let cands = slotCandidates(slot, version);
     if (!own(slot).length) {
       // Rule-only slot: try "no hat" / "no outfit" first — it removes every conflict.
       const layer = slot === 'H' ? 'hat' : 'outfit';
-      cands = [...cands].sort((a, b) => Number(generateCharacter(b, version)[layer] === 'none') - Number(generateCharacter(a, version)[layer] === 'none'));
+      cands = [...cands].sort(
+        (a, b) =>
+          Number(generateCharacter(b, version)[layer] === 'none') -
+          Number(generateCharacter(a, version)[layer] === 'none'),
+      );
     }
     for (const seed of [undefined, ...cands]) {
       if (seed) assign[slot] = seed;
@@ -267,14 +360,37 @@ export function simulateGreedy(o: Order, rng: Rng, version: number): Result {
 
 // --- Daily order: same for everyone, seeded by the date ---
 const DAILY_POOL: Requirement[] = [
-  { slot: 'face', tag: 'sleepy' }, { slot: 'face', tag: 'happy' }, { slot: 'face', tag: 'cheeky' }, { slot: 'face', tag: 'silly' },
-  { slot: 'face', tag: 'love' }, { slot: 'face', tag: 'surprised' }, { slot: 'face', tag: 'cool' },
-  { slot: 'hat', tag: '*' }, { slot: 'hat', tag: 'cozy' }, { slot: 'hat', tag: 'pirate' }, { slot: 'hat', tag: 'party' }, { slot: 'hat', tag: 'royal' },
-  { slot: 'outfit', tag: 'cozy' }, { slot: 'outfit', tag: '*' }, { slot: 'outfit', tag: 'sporty' }, { slot: 'outfit', tag: 'fancy' },
-  { slot: 'accessory', tag: '*' }, { slot: 'accessory', tag: 'party' }, { slot: 'accessory', tag: 'school' },
-  { slot: 'scene', tag: 'snow' }, { slot: 'scene', tag: 'beach' }, { slot: 'scene', tag: 'space' }, { slot: 'scene', tag: 'nature' }, { slot: 'scene', tag: 'ocean' },
-  { slot: 'color', tag: 'red' }, { slot: 'color', tag: 'blue' }, { slot: 'color', tag: 'green' }, { slot: 'color', tag: 'pink' }, { slot: 'color', tag: 'yellow' },
-  { slot: 'ears', tag: 'animal' }, { slot: 'ears', tag: '*' },
+  { slot: 'face', tag: 'sleepy' },
+  { slot: 'face', tag: 'happy' },
+  { slot: 'face', tag: 'cheeky' },
+  { slot: 'face', tag: 'silly' },
+  { slot: 'face', tag: 'love' },
+  { slot: 'face', tag: 'surprised' },
+  { slot: 'face', tag: 'cool' },
+  { slot: 'hat', tag: '*' },
+  { slot: 'hat', tag: 'cozy' },
+  { slot: 'hat', tag: 'pirate' },
+  { slot: 'hat', tag: 'party' },
+  { slot: 'hat', tag: 'royal' },
+  { slot: 'outfit', tag: 'cozy' },
+  { slot: 'outfit', tag: '*' },
+  { slot: 'outfit', tag: 'sporty' },
+  { slot: 'outfit', tag: 'fancy' },
+  { slot: 'accessory', tag: '*' },
+  { slot: 'accessory', tag: 'party' },
+  { slot: 'accessory', tag: 'school' },
+  { slot: 'scene', tag: 'snow' },
+  { slot: 'scene', tag: 'beach' },
+  { slot: 'scene', tag: 'space' },
+  { slot: 'scene', tag: 'nature' },
+  { slot: 'scene', tag: 'ocean' },
+  { slot: 'color', tag: 'red' },
+  { slot: 'color', tag: 'blue' },
+  { slot: 'color', tag: 'green' },
+  { slot: 'color', tag: 'pink' },
+  { slot: 'color', tag: 'yellow' },
+  { slot: 'ears', tag: 'animal' },
+  { slot: 'ears', tag: '*' },
 ];
 
 export function dailyOrder(day: string, version: number): Order {
@@ -289,9 +405,29 @@ export function dailyOrder(day: string, version: number): Order {
       usedSlots.add(r.slot);
       reqs.push(r);
     }
-    const o: Order = { id: `daily:${day}`, title: 'Daily order', customerSeed: randomSeed(rng), reqs, spins: 8, luck: 0.32, multiplier: ECONOMY.orders.dailyOrderMultiplier };
+    const o: Order = {
+      id: `daily:${day}`,
+      title: 'Daily order',
+      customerSeed: randomSeed(rng),
+      reqs,
+      spins: 8,
+      luck: 0.32,
+      multiplier: ECONOMY.orders.dailyOrderMultiplier,
+    };
     if (solve(o, version)) return o;
   }
   // Fallback that is always solvable.
-  return { id: `daily:${day}`, title: 'Daily order', customerSeed: randomSeed(rng), reqs: [{ slot: 'hat', tag: '*' }, { slot: 'scene', tag: 'beach' }, { slot: 'color', tag: 'blue' }], spins: 8, luck: 0.32, multiplier: ECONOMY.orders.dailyOrderMultiplier };
+  return {
+    id: `daily:${day}`,
+    title: 'Daily order',
+    customerSeed: randomSeed(rng),
+    reqs: [
+      { slot: 'hat', tag: '*' },
+      { slot: 'scene', tag: 'beach' },
+      { slot: 'color', tag: 'blue' },
+    ],
+    spins: 8,
+    luck: 0.32,
+    multiplier: ECONOMY.orders.dailyOrderMultiplier,
+  };
 }

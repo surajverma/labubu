@@ -23,7 +23,12 @@ export class SettingsScreen implements Screen {
   private versionTaps = 0;
 
   constructor(private app: App) {
-    this.el = h('div', { class: 'screen solid' }, h('div', { class: 'topbar' }, h('h1', null, 'Settings')), this.body);
+    this.el = h(
+      'div',
+      { class: 'screen solid' },
+      h('div', { class: 'topbar' }, h('h1', null, 'Settings')),
+      this.body,
+    );
   }
 
   enter(): void {
@@ -39,31 +44,82 @@ export class SettingsScreen implements Screen {
     this.render();
   }
 
-  private switchRow(label: string, k: 'sound' | 'music' | 'haptics' | 'reducedMotion', desc?: string): HTMLElement {
+  private switchRow(
+    label: string,
+    k: 'sound' | 'music' | 'haptics' | 'reducedMotion',
+    desc?: string,
+  ): HTMLElement {
     const on = this.app.game.save.settings[k];
     return h(
       'button',
-      { class: 'item', role: 'switch', 'aria-checked': String(on), onclick: () => (this.app.tap(), this.set(k, !on)) },
-      h('span', { class: 'label' }, label, desc ? h('div', { class: 'muted', style: 'font-size:13px;font-weight:500' }, desc) : null),
+      {
+        class: 'item',
+        role: 'switch',
+        'aria-checked': String(on),
+        onclick: () => (this.app.tap(), this.set(k, !on)),
+      },
+      h(
+        'span',
+        { class: 'label' },
+        label,
+        desc ? h('div', { class: 'muted', style: 'font-size:13px;font-weight:500' }, desc) : null,
+      ),
       toggle(on),
     );
   }
 
   private render(): void {
     const s = this.app.game.save.settings;
-    const qLabel = { auto: `Auto (${s.detectedQuality ?? 'high'})`, low: 'Low', medium: 'Medium', high: 'High' }[s.quality];
+    const qLabel = {
+      auto: `Auto (${s.detectedQuality ?? 'high'})`,
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+    }[s.quality];
     const qualities: Settings['quality'][] = ['auto', 'low', 'medium', 'high'];
-    const extra = SETTINGS_SECTIONS.map((f) => f(this.app, () => this.render())).filter((x): x is HTMLElement => !!x);
+    const extra = SETTINGS_SECTIONS.map((f) => f(this.app, () => this.render())).filter(
+      (x): x is HTMLElement => !!x,
+    );
     this.body.replaceChildren(
       h(
         'button',
-        { class: 'card row', style: 'width:100%;border:none;text-align:left;cursor:pointer;margin-top:4px', onclick: () => (this.app.tap(), this.app.push('profile')) },
-        h('div', { style: 'width:44px;height:44px;border-radius:14px;background:var(--bg2);display:grid;place-items:center;color:var(--primary)' }, icon('user')),
-        h('div', { style: 'flex:1' }, h('div', { style: 'font-family:var(--display);font-weight:700;font-size:18px' }, 'Your profile'), h('div', { class: 'muted', style: 'font-size:13px' }, `${this.app.game.save.achievements.length} achievements · ${this.app.game.save.badges.length} badges`)),
+        {
+          class: 'card row',
+          style: 'width:100%;border:none;text-align:left;cursor:pointer;margin-top:4px',
+          onclick: () => (this.app.tap(), this.app.push('profile')),
+        },
+        h(
+          'div',
+          {
+            style:
+              'width:44px;height:44px;border-radius:14px;background:var(--bg2);display:grid;place-items:center;color:var(--primary)',
+          },
+          icon('user'),
+        ),
+        h(
+          'div',
+          { style: 'flex:1' },
+          h(
+            'div',
+            { style: 'font-family:var(--display);font-weight:700;font-size:18px' },
+            'Your profile',
+          ),
+          h(
+            'div',
+            { class: 'muted', style: 'font-size:13px' },
+            `${this.app.game.save.achievements.length} achievements · ${this.app.game.save.badges.length} badges`,
+          ),
+        ),
         icon('back', 20),
       ),
       h('h2', null, 'Sound & feel'),
-      h('div', { class: 'list' }, this.switchRow('Sound effects', 'sound'), this.switchRow('Music', 'music', 'A soft background tune'), this.switchRow('Haptics', 'haptics', 'Little buzzes when things spin')),
+      h(
+        'div',
+        { class: 'list' },
+        this.switchRow('Sound effects', 'sound'),
+        this.switchRow('Music', 'music', 'A soft background tune'),
+        this.switchRow('Haptics', 'haptics', 'Little buzzes when things spin'),
+      ),
       ...extra,
       h('h2', null, 'Graphics'),
       h(
@@ -75,7 +131,10 @@ export class SettingsScreen implements Screen {
             class: 'item',
             onclick: () => {
               this.app.tap();
-              this.set('quality', qualities[(qualities.indexOf(s.quality) + 1) % qualities.length]!);
+              this.set(
+                'quality',
+                qualities[(qualities.indexOf(s.quality) + 1) % qualities.length]!,
+              );
             },
           },
           h('span', { class: 'label' }, 'Quality'),
@@ -87,20 +146,67 @@ export class SettingsScreen implements Screen {
       h(
         'div',
         { class: 'list' },
-        h('button', { class: 'item', onclick: () => this.doExport() }, icon('share', 22), h('span', { class: 'label' }, 'Export save file', h('div', { class: 'muted', style: 'font-size:13px;font-weight:500' }, 'Keep a backup or move to a new phone'))),
-        h('button', { class: 'item', onclick: () => this.doImport() }, icon('back', 22), h('span', { class: 'label' }, 'Import save file')),
-        h('button', { class: 'item', style: 'color:#d13b3b', onclick: () => this.doReset() }, icon('close', 22), h('span', { class: 'label' }, 'Reset everything')),
+        h(
+          'button',
+          { class: 'item', onclick: () => this.doExport() },
+          icon('share', 22),
+          h(
+            'span',
+            { class: 'label' },
+            'Export save file',
+            h(
+              'div',
+              { class: 'muted', style: 'font-size:13px;font-weight:500' },
+              'Keep a backup or move to a new phone',
+            ),
+          ),
+        ),
+        h(
+          'button',
+          { class: 'item', onclick: () => this.doImport() },
+          icon('back', 22),
+          h('span', { class: 'label' }, 'Import save file'),
+        ),
+        h(
+          'button',
+          { class: 'item', style: 'color:#d13b3b', onclick: () => this.doReset() },
+          icon('close', 22),
+          h('span', { class: 'label' }, 'Reset everything'),
+        ),
       ),
       h('h2', null, 'About'),
       h(
         'div',
         { class: 'list' },
-        h('button', { class: 'item', onclick: () => (this.app.tap(), this.app.sheet(oddsContent())) }, icon('dice', 22), h('span', { class: 'label' }, 'Box odds')),
-        h('button', { class: 'item', onclick: () => this.credits() }, icon('star', 22), h('span', { class: 'label' }, 'Credits')),
-        h('button', { class: 'item', onclick: () => this.versionTap(), 'aria-label': `Version ${APP.version}` }, h('span', { class: 'label' }, 'Version'), h('span', { class: 'val' }, APP.version)),
+        h(
+          'button',
+          { class: 'item', onclick: () => (this.app.tap(), this.app.sheet(oddsContent())) },
+          icon('dice', 22),
+          h('span', { class: 'label' }, 'Box odds'),
+        ),
+        h(
+          'button',
+          { class: 'item', onclick: () => this.credits() },
+          icon('star', 22),
+          h('span', { class: 'label' }, 'Credits'),
+        ),
+        h(
+          'button',
+          {
+            class: 'item',
+            onclick: () => this.versionTap(),
+            'aria-label': `Version ${APP.version}`,
+          },
+          h('span', { class: 'label' }, 'Version'),
+          h('span', { class: 'val' }, APP.version),
+        ),
       ),
       this.app.game.save.dev ? this.devMenu() : h('span'),
-      h('p', { class: 'muted', style: 'text-align:center;font-size:13px;margin-top:20px' }, `${APP.name} has no ads, no real-money purchases and no tracking.`),
+      h(
+        'p',
+        { class: 'muted', style: 'text-align:center;font-size:13px;margin-top:20px' },
+        `${APP.name} has no ads, no real-money purchases and no tracking.`,
+      ),
     );
   }
 
@@ -136,7 +242,13 @@ export class SettingsScreen implements Screen {
           },
           h('span', { class: 'label' }, '+10 boxes'),
         ),
-        ...DEV_ACTIONS.map((a) => h('button', { class: 'item', onclick: () => a.run(this.app) }, h('span', { class: 'label' }, a.label))),
+        ...DEV_ACTIONS.map((a) =>
+          h(
+            'button',
+            { class: 'item', onclick: () => a.run(this.app) },
+            h('span', { class: 'label' }, a.label),
+          ),
+        ),
         h(
           'button',
           {
@@ -167,9 +279,28 @@ export class SettingsScreen implements Screen {
     this.app.tap();
     this.app.sheet([
       h('h3', null, 'Credits'),
-      h('p', null, `${APP.name} and every buddy, scene, face and sound in it are original and made in code.`),
-      h('div', { class: 'kv' }, h('b', null, 'Font'), h('span', null, 'Fredoka — SIL Open Font License 1.1'), h('b', null, '3D'), h('span', null, 'three.js (MIT)'), h('b', null, 'App shell'), h('span', null, 'Capacitor (MIT)'), h('b', null, 'Sounds'), h('span', null, 'Synthesised live with WebAudio')),
-      h('p', { class: 'muted', style: 'font-size:14px' }, 'See CREDITS.md in the source for the full list.'),
+      h(
+        'p',
+        null,
+        `${APP.name} and every buddy, scene, face and sound in it are original and made in code.`,
+      ),
+      h(
+        'div',
+        { class: 'kv' },
+        h('b', null, 'Font'),
+        h('span', null, 'Fredoka — SIL Open Font License 1.1'),
+        h('b', null, '3D'),
+        h('span', null, 'three.js (MIT)'),
+        h('b', null, 'App shell'),
+        h('span', null, 'Capacitor (MIT)'),
+        h('b', null, 'Sounds'),
+        h('span', null, 'Synthesised live with WebAudio'),
+      ),
+      h(
+        'p',
+        { class: 'muted', style: 'font-size:14px' },
+        'See CREDITS.md in the source for the full list.',
+      ),
     ]);
   }
 
@@ -190,7 +321,11 @@ export class SettingsScreen implements Screen {
     try {
       const s = await pickSaveFile();
       if (!s) return;
-      const ok = await this.app.confirm('Replace your save?', `This file has ${s.collection.length} buddies and ${s.boxes} boxes. Your current save will be replaced.`, 'Replace');
+      const ok = await this.app.confirm(
+        'Replace your save?',
+        `This file has ${s.collection.length} buddies and ${s.boxes} boxes. Your current save will be replaced.`,
+        'Replace',
+      );
       if (!ok) return;
       this.app.game.save = s;
       this.app.game.changed('import');
@@ -205,7 +340,12 @@ export class SettingsScreen implements Screen {
 
   private async doReset(): Promise<void> {
     this.app.tap();
-    const ok = await this.app.confirm('Reset everything?', 'All your buddies, boxes and progress will be deleted. Export a save first if you might want them back.', 'Delete everything', true);
+    const ok = await this.app.confirm(
+      'Reset everything?',
+      'All your buddies, boxes and progress will be deleted. Export a save first if you might want them back.',
+      'Delete everything',
+      true,
+    );
     if (!ok) return;
     await clearSave();
     this.app.game.save = newSave();

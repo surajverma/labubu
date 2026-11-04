@@ -12,7 +12,13 @@ function inHand(c: BuildCtx, left = false): THREE.Group {
   return g;
 }
 
-function stick(c: BuildCtx, g: THREE.Object3D, len: number, r: number, mat: THREE.Material): THREE.Mesh {
+function stick(
+  c: BuildCtx,
+  g: THREE.Object3D,
+  len: number,
+  r: number,
+  mat: THREE.Material,
+): THREE.Mesh {
   const m = c.mesh(new THREE.CylinderGeometry(r, r, len, 10), mat, g);
   m.position.y = len / 2 - 0.05;
   return m;
@@ -24,21 +30,45 @@ export const ACCESSORIES: Record<string, Builder> = {
   balloon: (c) => {
     const g = inHand(c);
     const top = new THREE.Vector3(0.25, 1.35, -0.25);
-    const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.12, 0.5, -0.1), new THREE.Vector3(0.15, 0.9, -0.15), top]);
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0.12, 0.5, -0.1),
+      new THREE.Vector3(0.15, 0.9, -0.15),
+      top,
+    ]);
     c.mesh(new THREE.TubeGeometry(curve, 40, 0.006, 4), c.kit.plastic('#ffffff', 0.6), g);
-    const b = c.mesh(blobGeometry({ rx: 0.24, ry: 0.28, rz: 0.24, egg: 0.12 }, { widthSegments: 32, heightSegments: 24 }), c.kit.vinyl(c.spec.palette.accent, 'glossy'), g);
+    const b = c.mesh(
+      blobGeometry(
+        { rx: 0.24, ry: 0.28, rz: 0.24, egg: 0.12 },
+        { widthSegments: 32, heightSegments: 24 },
+      ),
+      c.kit.vinyl(c.spec.palette.accent, 'glossy'),
+      g,
+    );
     b.position.copy(top).add(new THREE.Vector3(0, 0.28, 0));
     b.name = 'balloon';
-    const knot = c.mesh(new THREE.ConeGeometry(0.035, 0.05, 10), c.kit.vinyl(c.spec.palette.accent, 'glossy'), g);
+    const knot = c.mesh(
+      new THREE.ConeGeometry(0.035, 0.05, 10),
+      c.kit.vinyl(c.spec.palette.accent, 'glossy'),
+      g,
+    );
     knot.position.copy(top).add(new THREE.Vector3(0, 0.01, 0));
   },
 
   backpack: (c) => {
     const pal = c.spec.palette;
     const p = c.body.params;
-    const pack = c.mesh(roundedBox(p.rx * 1.25, p.ry * 1.1, 0.24, 0.08), c.kit.fabric(pal.accent), c.body.group);
+    const pack = c.mesh(
+      roundedBox(p.rx * 1.25, p.ry * 1.1, 0.24, 0.08),
+      c.kit.fabric(pal.accent),
+      c.body.group,
+    );
     pack.position.set(0, c.body.cy + 0.06, -p.rz - 0.08);
-    const pocket = c.mesh(roundedBox(p.rx * 0.9, p.ry * 0.45, 0.1, 0.04), c.kit.fabric(pal.outfitAlt), c.body.group);
+    const pocket = c.mesh(
+      roundedBox(p.rx * 0.9, p.ry * 0.45, 0.1, 0.04),
+      c.kit.fabric(pal.outfitAlt),
+      c.body.group,
+    );
     pocket.position.set(0, c.body.cy - 0.1, -p.rz - 0.2);
     for (const s of [-1, 1]) {
       const a = c.body.anchor(s * 30, 60).pos.multiplyScalar(1.05);
@@ -54,7 +84,11 @@ export const ACCESSORIES: Record<string, Builder> = {
     const p = c.body.params;
     const top = c.body.cy + p.ry * 0.86;
     const r = c.body.anchor(90, 60).pos.x;
-    const m = c.mesh(new THREE.TorusGeometry(Math.abs(r) * 0.92, 0.075, 14, 40), c.kit.fabric(pal.accent), c.body.group);
+    const m = c.mesh(
+      new THREE.TorusGeometry(Math.abs(r) * 0.92, 0.075, 14, 40),
+      c.kit.fabric(pal.accent),
+      c.body.group,
+    );
     m.rotation.x = Math.PI / 2;
     m.scale.set(1, (p.rz / p.rx) * 1.05, 1);
     m.position.y = top;
@@ -79,7 +113,13 @@ export const ACCESSORIES: Record<string, Builder> = {
       if (i === 0) star.moveTo(Math.cos(a) * rr, -Math.sin(a) * rr);
       else star.lineTo(Math.cos(a) * rr, -Math.sin(a) * rr);
     }
-    const sg = new THREE.ExtrudeGeometry(star, { depth: 0.03, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 3 });
+    const sg = new THREE.ExtrudeGeometry(star, {
+      depth: 0.03,
+      bevelEnabled: true,
+      bevelSize: 0.02,
+      bevelThickness: 0.02,
+      bevelSegments: 3,
+    });
     sg.center();
     const s = c.mesh(sg, c.kit.glow('#ffd84d', 0.7), g);
     s.position.y = 0.42;
@@ -107,7 +147,9 @@ export const ACCESSORIES: Record<string, Builder> = {
     const t = c.kit.ownTexture(new THREE.CanvasTexture(cv));
     t.colorSpace = THREE.SRGBColorSpace;
     const candy = new THREE.CylinderGeometry(0.15, 0.15, 0.05, 40);
-    const mat = c.kit.own(new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.15, clearcoat: 1 }));
+    const mat = c.kit.own(
+      new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.15, clearcoat: 1 }),
+    );
     const disc = c.mesh(candy, mat, g);
     disc.rotation.x = Math.PI / 2;
     disc.position.y = 0.46;
@@ -134,7 +176,11 @@ export const ACCESSORIES: Record<string, Builder> = {
     const cm = c.mesh(canopy, mat, g);
     cm.position.y = 1.76;
     c.mesh(new THREE.SphereGeometry(0.03, 10, 8), mat, g).position.y = 2.03;
-    const hook = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, -0.05, 0), new THREE.Vector3(0, -0.15, 0), new THREE.Vector3(0.08, -0.12, 0));
+    const hook = new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(0, -0.05, 0),
+      new THREE.Vector3(0, -0.15, 0),
+      new THREE.Vector3(0.08, -0.12, 0),
+    );
     c.mesh(taperedTube(hook, 0.016, 0.016, 10, 6, false), c.kit.plastic('#4b3a33', 0.4), g);
   },
 
@@ -168,7 +214,11 @@ export const ACCESSORIES: Record<string, Builder> = {
       lens.position.copy(r.position);
       lens.rotation.y = r.rotation.y;
     }
-    const bridge = new THREE.QuadraticBezierCurve3(new THREE.Vector3(-0.09, 0.02, -0.01), new THREE.Vector3(0, 0.06, 0.01), new THREE.Vector3(0.09, 0.02, -0.01));
+    const bridge = new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(-0.09, 0.02, -0.01),
+      new THREE.Vector3(0, 0.06, 0.01),
+      new THREE.Vector3(0.09, 0.02, -0.01),
+    );
     c.mesh(taperedTube(bridge, 0.016, 0.016, 10, 6, false), frame, g);
   },
 
@@ -205,7 +255,11 @@ export const ACCESSORIES: Record<string, Builder> = {
     const g = inHand(c);
     g.rotation.z = -1.0;
     const brass = c.kit.metal('#d2a24c');
-    c.mesh(latheProfile(0.5, (t) => 0.05 + t * 0.03, 4, 20), brass, g).position.y = -0.1;
+    c.mesh(
+      latheProfile(0.5, (t) => 0.05 + t * 0.03, 4, 20),
+      brass,
+      g,
+    ).position.y = -0.1;
     c.mesh(ring(0.085, 0.015), c.kit.plastic('#4b3a33'), g).position.y = 0.38;
   },
 
@@ -219,25 +273,42 @@ export const ACCESSORIES: Record<string, Builder> = {
       const s = c.mesh(new THREE.SphereGeometry(0.09, 18, 12), c.kit.plastic(col, 0.6), g);
       s.position.y = 0.22 + i * 0.12;
     });
-    c.mesh(new THREE.SphereGeometry(0.03, 10, 8), c.kit.plastic('#e8334a', 0.2), g).position.y = 0.55;
+    c.mesh(new THREE.SphereGeometry(0.03, 10, 8), c.kit.plastic('#e8334a', 0.2), g).position.y =
+      0.55;
   },
 
   camera: (c) => {
     const g = inHand(c, true);
     const body = c.mesh(roundedBox(0.26, 0.17, 0.12, 0.04), c.kit.plastic('#2c2f3a', 0.4), g);
     body.position.y = 0.08;
-    const lens = c.mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.08, 20), c.kit.plastic('#555c6e', 0.25), g);
+    const lens = c.mesh(
+      new THREE.CylinderGeometry(0.06, 0.06, 0.08, 20),
+      c.kit.plastic('#555c6e', 0.25),
+      g,
+    );
     lens.rotation.x = Math.PI / 2;
     lens.position.set(0, 0.08, 0.08);
-    c.mesh(new THREE.SphereGeometry(0.02, 8, 6), c.kit.glow('#ff5d5d', 1), g).position.set(0.09, 0.15, 0.05);
+    c.mesh(new THREE.SphereGeometry(0.02, 8, 6), c.kit.glow('#ff5d5d', 1), g).position.set(
+      0.09,
+      0.15,
+      0.05,
+    );
   },
 
   skateboard: (c) => {
-    const board = c.mesh(roundedBox(0.9, 0.05, 0.28, 0.025), c.kit.plastic(c.spec.palette.accent, 0.4), c.root);
+    const board = c.mesh(
+      roundedBox(0.9, 0.05, 0.28, 0.025),
+      c.kit.plastic(c.spec.palette.accent, 0.4),
+      c.root,
+    );
     board.position.set(0, 0.045, 0);
     for (const sx of [-0.3, 0.3])
       for (const sz of [-0.1, 0.1]) {
-        const w = c.mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.035, 12), c.kit.plastic('#fafafa'), c.root);
+        const w = c.mesh(
+          new THREE.CylinderGeometry(0.035, 0.035, 0.035, 12),
+          c.kit.plastic('#fafafa'),
+          c.root,
+        );
         w.rotation.x = Math.PI / 2;
         w.position.set(sx, 0.02, sz);
       }
@@ -248,8 +319,23 @@ export const ACCESSORIES: Record<string, Builder> = {
     const g = inHand(c);
     g.rotation.z = -0.35;
     stick(c, g, 0.3, 0.014, c.kit.plastic('#ff8fc7', 0.3));
-    c.mesh(new THREE.TorusGeometry(0.07, 0.014, 8, 24), c.kit.plastic('#ff8fc7', 0.3), g).position.y = 0.33;
-    const bub = c.kit.own(new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0, iridescence: 1, iridescenceIOR: 1.3, transparent: true, opacity: 0.35, clearcoat: 1, depthWrite: false }));
+    c.mesh(
+      new THREE.TorusGeometry(0.07, 0.014, 8, 24),
+      c.kit.plastic('#ff8fc7', 0.3),
+      g,
+    ).position.y = 0.33;
+    const bub = c.kit.own(
+      new THREE.MeshPhysicalMaterial({
+        color: '#ffffff',
+        roughness: 0,
+        iridescence: 1,
+        iridescenceIOR: 1.3,
+        transparent: true,
+        opacity: 0.35,
+        clearcoat: 1,
+        depthWrite: false,
+      }),
+    );
     for (let i = 0; i < 4; i++) {
       const b = c.mesh(new THREE.SphereGeometry(0.05 + i * 0.015, 18, 12), bub, g);
       b.position.set(0.12 + i * 0.12, 0.45 + i * 0.14, -0.05 * i);
@@ -262,7 +348,14 @@ export const ACCESSORIES: Record<string, Builder> = {
     g.rotation.z = 0.8;
     c.body.group.add(g);
     const wood = c.kit.plastic(c.spec.palette.accent, 0.35);
-    c.mesh(blobGeometry({ rx: 0.16, ry: 0.2, rz: 0.06, egg: -0.25 }, { widthSegments: 24, heightSegments: 16 }), wood, g);
+    c.mesh(
+      blobGeometry(
+        { rx: 0.16, ry: 0.2, rz: 0.06, egg: -0.25 },
+        { widthSegments: 24, heightSegments: 16 },
+      ),
+      wood,
+      g,
+    );
     c.mesh(roundedBox(0.05, 0.42, 0.03, 0.015), c.kit.plastic('#4b3a33', 0.5), g).position.y = 0.32;
     const hole = c.mesh(new THREE.CircleGeometry(0.045, 20), c.kit.basic('#2a1b14'), g);
     hole.position.set(0, 0.02, 0.061);
@@ -275,7 +368,8 @@ export const ACCESSORIES: Record<string, Builder> = {
     b.position.y = 0.04;
     const h = c.mesh(new THREE.SphereGeometry(0.085, 16, 12), fur, g);
     h.position.y = 0.19;
-    for (const s of [-1, 1]) c.mesh(new THREE.SphereGeometry(0.035, 10, 8), fur, g).position.set(s * 0.06, 0.26, 0);
+    for (const s of [-1, 1])
+      c.mesh(new THREE.SphereGeometry(0.035, 10, 8), fur, g).position.set(s * 0.06, 0.26, 0);
     const snout = c.mesh(new THREE.SphereGeometry(0.03, 10, 8), c.kit.fabric('#f1d2b0'), g);
     snout.position.set(0, 0.18, 0.075);
   },

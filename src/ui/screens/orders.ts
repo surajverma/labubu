@@ -1,4 +1,11 @@
-import { LEVELS, STREETS, levelUnlocked, streetStars, streetUnlocked, totalStars } from '../../game/levels';
+import {
+  LEVELS,
+  STREETS,
+  levelUnlocked,
+  streetStars,
+  streetUnlocked,
+  totalStars,
+} from '../../game/levels';
 import { dailyOrder, reqLabel } from '../../game/orders';
 import { ECONOMY } from '../../game/economy';
 import { dayKey } from '../../game/time';
@@ -32,16 +39,49 @@ export class OrdersScreen implements Screen {
   private render(): void {
     const g = this.app.game;
     const best = g.save.orders.best;
-    this.top.replaceChildren(h('h1', null, 'Orders'), h('span', { class: 'chip light' }, `★ ${totalStars(best)}`), counter('coins', g.save.coins));
+    this.top.replaceChildren(
+      h('h1', null, 'Orders'),
+      h('span', { class: 'chip light' }, `★ ${totalStars(best)}`),
+      counter('coins', g.save.coins),
+    );
     const today = dayKey(Date.now());
     const daily = dailyOrder(today, g.contentVersion);
     const dres = g.save.orders.daily[today];
     const dailyCard = h(
       'button',
-      { class: 'card', style: 'border:none;width:100%;text-align:left;cursor:pointer;background:linear-gradient(135deg,#7a5cff,#b06bff);color:#fff', onclick: () => (this.app.tap(), this.app.push('order', { daily: today })) },
-      h('div', { class: 'row' }, icon('calendar', 26), h('div', { style: 'flex:1;font-family:var(--display);font-weight:700;font-size:20px' }, 'Daily order'), h('span', { style: 'font-size:20px;letter-spacing:2px' }, dres ? starsText(dres.stars) : 'NEW')),
-      h('div', { style: 'margin-top:6px;opacity:.95;font-weight:600' }, daily.reqs.map(reqLabel).join(' · ')),
-      h('div', { style: 'margin-top:4px;opacity:.8;font-size:13px' }, dres ? `Your best today: ${dres.score} points` : `Same order for everyone today · ${ECONOMY.orders.dailyOrderMultiplier} coins per star`),
+      {
+        class: 'card',
+        style:
+          'border:none;width:100%;text-align:left;cursor:pointer;background:linear-gradient(135deg,#7a5cff,#b06bff);color:#fff',
+        onclick: () => (this.app.tap(), this.app.push('order', { daily: today })),
+      },
+      h(
+        'div',
+        { class: 'row' },
+        icon('calendar', 26),
+        h(
+          'div',
+          { style: 'flex:1;font-family:var(--display);font-weight:700;font-size:20px' },
+          'Daily order',
+        ),
+        h(
+          'span',
+          { style: 'font-size:20px;letter-spacing:2px' },
+          dres ? starsText(dres.stars) : 'NEW',
+        ),
+      ),
+      h(
+        'div',
+        { style: 'margin-top:6px;opacity:.95;font-weight:600' },
+        daily.reqs.map(reqLabel).join(' · '),
+      ),
+      h(
+        'div',
+        { style: 'margin-top:4px;opacity:.8;font-size:13px' },
+        dres
+          ? `Your best today: ${dres.score} points`
+          : `Same order for everyone today · ${ECONOMY.orders.dailyOrderMultiplier} coins per star`,
+      ),
     );
     const sections: HTMLElement[] = [dailyCard];
     for (const st of STREETS) {
@@ -73,8 +113,27 @@ export class OrdersScreen implements Screen {
           h(
             'div',
             { class: 'row', style: 'margin:18px 0 10px' },
-            h('div', { style: `width:40px;height:40px;border-radius:14px;background:${st.color};display:grid;place-items:center;font-size:22px` }, st.icon),
-            h('div', { style: 'flex:1' }, h('div', { style: 'font-family:var(--display);font-weight:700;font-size:19px' }, st.name), h('div', { class: 'muted', style: 'font-size:13px' }, unlocked ? `${streetStars(best, st.id)} / 30 stars` : `Unlocks at ${need} ★ total`)),
+            h(
+              'div',
+              {
+                style: `width:40px;height:40px;border-radius:14px;background:${st.color};display:grid;place-items:center;font-size:22px`,
+              },
+              st.icon,
+            ),
+            h(
+              'div',
+              { style: 'flex:1' },
+              h(
+                'div',
+                { style: 'font-family:var(--display);font-weight:700;font-size:19px' },
+                st.name,
+              ),
+              h(
+                'div',
+                { class: 'muted', style: 'font-size:13px' },
+                unlocked ? `${streetStars(best, st.id)} / 30 stars` : `Unlocks at ${need} ★ total`,
+              ),
+            ),
           ),
           grid,
         ),

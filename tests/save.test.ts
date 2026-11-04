@@ -10,7 +10,20 @@ describe('save migrations', () => {
     expect(migrate(JSON.parse(JSON.stringify(s)))).toEqual(s);
   });
   it('upgrades an unversioned save and fills defaults', () => {
-    const m = migrate({ boxes: 3, collection: [{ uid: 'a', seed: 'ABCD-EFGH', v: 1, foundAt: 1, favourite: false, count: 1, source: 'box' }] });
+    const m = migrate({
+      boxes: 3,
+      collection: [
+        {
+          uid: 'a',
+          seed: 'ABCD-EFGH',
+          v: 1,
+          foundAt: 1,
+          favourite: false,
+          count: 1,
+          source: 'box',
+        },
+      ],
+    });
     expect(m.saveVersion).toBe(SAVE_VERSION);
     expect(m.boxes).toBe(3);
     expect(m.collection.length).toBe(1);
@@ -28,9 +41,30 @@ describe('save migrations', () => {
       saveVersion: 1,
       createdAt: 1700000000000,
       boxes: 2,
-      collection: [{ uid: 'x1', seed: 'K7Q2-MX9A', v: 1, foundAt: 1700000001000, favourite: true, count: 3, source: 'box', series: 1, index: 12 }],
+      collection: [
+        {
+          uid: 'x1',
+          seed: 'K7Q2-MX9A',
+          v: 1,
+          foundAt: 1700000001000,
+          favourite: true,
+          count: 3,
+          source: 'box',
+          series: 1,
+          index: 12,
+        },
+      ],
       homeUid: 'x1',
-      settings: { sound: false, music: true, haptics: true, notifications: true, notifyHour: 18, quality: 'auto', spinMode: 'face', reducedMotion: false },
+      settings: {
+        sound: false,
+        music: true,
+        haptics: true,
+        notifications: true,
+        notifyHour: 18,
+        quality: 'auto',
+        spinMode: 'face',
+        reducedMotion: false,
+      },
       stats: { boxesOpened: 9, spins: 40, secretsFound: 0 },
       badges: ['cozy-club'],
       dev: false,

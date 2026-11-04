@@ -26,7 +26,13 @@ export class DetailScreen implements Screen {
 
   constructor(private app: App) {
     this.view = new CharacterView(app.stage);
-    this.el = h('div', { class: 'screen no-tabs' }, this.top, h('div', { class: 'spacer passthrough' }), this.card);
+    this.el = h(
+      'div',
+      { class: 'screen no-tabs' },
+      this.top,
+      h('div', { class: 'spacer passthrough' }),
+      this.card,
+    );
   }
 
   enter(params?: Record<string, unknown>): void {
@@ -49,7 +55,12 @@ export class DetailScreen implements Screen {
         const rig = this.view.rig;
         if (!rig || rig.isSpinning()) return;
         // Spinning in the book is just for fun: it lands back on the real face.
-        void rig.spinFace(specFor(o).face, { direction: dir, fillers: [], onTick: () => (sfx.tick(), haptic.tick()), onLand: () => (sfx.land(), haptic.land()) });
+        void rig.spinFace(specFor(o).face, {
+          direction: dir,
+          fillers: [],
+          onTick: () => (sfx.tick(), haptic.tick()),
+          onLand: () => (sfx.land(), haptic.land()),
+        });
       },
     };
     this.render(o);
@@ -71,8 +82,16 @@ export class DetailScreen implements Screen {
       else this.app.back();
     };
     this.top.replaceChildren(
-      h('button', { class: 'iconbtn', 'aria-label': 'Back', onclick: () => this.app.back() }, icon('back')),
-      h('h1', { style: 'font-size:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap' }, displayName(o)),
+      h(
+        'button',
+        { class: 'iconbtn', 'aria-label': 'Back', onclick: () => this.app.back() },
+        icon('back'),
+      ),
+      h(
+        'h1',
+        { style: 'font-size:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap' },
+        displayName(o),
+      ),
       h(
         'button',
         {
@@ -90,8 +109,14 @@ export class DetailScreen implements Screen {
         icon('heart'),
       ),
     );
-    const found = new Date(o.foundAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-    const extra = DETAIL_ACTIONS.map((f) => f(this.app, o, refresh)).filter((x): x is HTMLElement => !!x);
+    const found = new Date(o.foundAt).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+    const extra = DETAIL_ACTIONS.map((f) => f(this.app, o, refresh)).filter(
+      (x): x is HTMLElement => !!x,
+    );
     this.card.replaceChildren(
       h(
         'div',
@@ -100,7 +125,13 @@ export class DetailScreen implements Screen {
         o.count > 1 ? h('span', { class: 'chip light' }, `×${o.count} copies`) : null,
         o.index ? h('span', { class: 'chip light' }, `#${String(o.index).padStart(4, '0')}`) : null,
         o.nickname ? h('span', { class: 'chip light' }, s.name) : null,
-        o.variant && SEASONS[o.variant] ? h('span', { class: 'chip light' }, `${SEASONS[o.variant]!.icon} ${SEASONS[o.variant]!.name} edition`) : null,
+        o.variant && SEASONS[o.variant]
+          ? h(
+              'span',
+              { class: 'chip light' },
+              `${SEASONS[o.variant]!.icon} ${SEASONS[o.variant]!.name} edition`,
+            )
+          : null,
         o.variant?.startsWith('mix:') ? h('span', { class: 'chip light' }, 'Order special') : null,
       ),
       h(
@@ -111,14 +142,25 @@ export class DetailScreen implements Screen {
         h('b', null, 'Found'),
         h('span', null, found),
         h('b', null, 'Look'),
-        h('span', null, [partName('hat', s.hat), partName('outfit', s.outfit), partName('accessory', s.accessory)].filter((x) => !/^No |^Nothing/.test(x)).join(' · ') || 'Simple & classic'),
+        h(
+          'span',
+          null,
+          [partName('hat', s.hat), partName('outfit', s.outfit), partName('accessory', s.accessory)]
+            .filter((x) => !/^No |^Nothing/.test(x))
+            .join(' · ') || 'Simple & classic',
+        ),
         h('b', null, 'Scene'),
         h('span', null, partName('scene', s.scene)),
       ),
       h(
         'div',
         { class: 'row', style: 'margin-top:14px;flex-wrap:wrap' },
-        h('button', { class: 'btn ghost small', onclick: () => this.rename(o, refresh) }, icon('edit', 20), 'Rename'),
+        h(
+          'button',
+          { class: 'btn ghost small', onclick: () => this.rename(o, refresh) },
+          icon('edit', 20),
+          'Rename',
+        ),
         h(
           'button',
           {
@@ -140,7 +182,13 @@ export class DetailScreen implements Screen {
 
   private rename(o: OwnedCharacter, refresh: () => void): void {
     this.app.tap();
-    const input = h('input', { class: 'text', value: o.nickname ?? '', placeholder: specFor(o).name, maxlength: '24', 'aria-label': 'Name' }) as HTMLInputElement;
+    const input = h('input', {
+      class: 'text',
+      value: o.nickname ?? '',
+      placeholder: specFor(o).name,
+      maxlength: '24',
+      'aria-label': 'Name',
+    }) as HTMLInputElement;
     const save = () => {
       o.nickname = input.value.trim().slice(0, 24) || undefined;
       this.app.game.changed('rename');
@@ -150,7 +198,12 @@ export class DetailScreen implements Screen {
     const close = this.app.sheet([
       h('h3', null, 'Rename buddy'),
       input,
-      h('div', { class: 'stack', style: 'margin-top:14px' }, h('button', { class: 'btn purple block', onclick: save }, 'Save'), h('button', { class: 'btn ghost block', onclick: () => close() }, 'Cancel')),
+      h(
+        'div',
+        { class: 'stack', style: 'margin-top:14px' },
+        h('button', { class: 'btn purple block', onclick: save }, 'Save'),
+        h('button', { class: 'btn ghost block', onclick: () => close() }, 'Cancel'),
+      ),
     ]);
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') save();

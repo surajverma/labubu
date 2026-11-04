@@ -4,12 +4,36 @@ import { colorName, generatePalette } from './palette';
 import { applyRules } from './rules';
 import { makeName } from './names';
 import { tierForScore, SECRET_CHANCE } from './rarity';
-import { FACE_LAYERS, type CharacterSpec, type FaceSpec, type Finish, type Layer, type PartDef } from './types';
+import {
+  FACE_LAYERS,
+  type CharacterSpec,
+  type FaceSpec,
+  type Finish,
+  type Layer,
+  type PartDef,
+} from './types';
 
 /** Generator version used for new characters. Old saves keep the version they were made with. */
 export const LATEST_GENERATOR_VERSION = 2;
 
-const MOODS = new Set(['happy', 'sleepy', 'cheeky', 'cool', 'shy', 'angry', 'surprised', 'silly', 'love', 'sad', 'sparkly', 'calm', 'cute', 'spooky', 'magic', 'cozy']);
+const MOODS = new Set([
+  'happy',
+  'sleepy',
+  'cheeky',
+  'cool',
+  'shy',
+  'angry',
+  'surprised',
+  'silly',
+  'love',
+  'sad',
+  'sparkly',
+  'calm',
+  'cute',
+  'spooky',
+  'magic',
+  'cozy',
+]);
 
 interface Pick {
   part: PartDef;
@@ -28,7 +52,11 @@ function pickPart(rng: Rng, layer: Layer, version: number, secret: boolean): Pic
  * Pure, deterministic character generation. Every layer has its own RNG stream (keyed by
  * seed + version + layer), so picks never shift when another layer changes.
  */
-export function generateCharacter(seed: string, version = LATEST_GENERATOR_VERSION, variant?: string): CharacterSpec {
+export function generateCharacter(
+  seed: string,
+  version = LATEST_GENERATOR_VERSION,
+  variant?: string,
+): CharacterSpec {
   const mix = variant?.startsWith('mix:') ? parseMix(variant) : null;
   const key = `${seed}|v${version}${variant && !mix ? `|${variant}` : ''}`;
   // A "mix" variant takes some layers from other seeds (Order challenge results).
@@ -49,7 +77,10 @@ export function generateCharacter(seed: string, version = LATEST_GENERATOR_VERSI
   const body = pick('body');
   const head = pick('head');
   const ears = pick('ears');
-  const faceParts = Object.fromEntries(FACE_LAYERS.map((l) => [l, pick(l)])) as Record<(typeof FACE_LAYERS)[number], PartDef>;
+  const faceParts = Object.fromEntries(FACE_LAYERS.map((l) => [l, pick(l)])) as Record<
+    (typeof FACE_LAYERS)[number],
+    PartDef
+  >;
   const hat = pick('hat');
   const outfit = pick('outfit');
   const accessory = pick('accessory');
@@ -115,7 +146,11 @@ export function generateCharacter(seed: string, version = LATEST_GENERATOR_VERSI
   spec.palette.colorTags = colorTagsOf(spec);
   spec.rarity = secret ? 'secret' : tierForScore(score, version);
   const tagsForName = spec.tags;
-  spec.name = makeName(stream('name'), tagsForName.filter((t) => MOODS.has(t)), tagsForName.filter((t) => !MOODS.has(t)));
+  spec.name = makeName(
+    stream('name'),
+    tagsForName.filter((t) => MOODS.has(t)),
+    tagsForName.filter((t) => !MOODS.has(t)),
+  );
   return spec;
 }
 
@@ -127,7 +162,6 @@ export function colorTagsOf(s: CharacterSpec): string[] {
   if (s.accessory !== 'none') set.add(colorName(s.palette.accent));
   return [...set];
 }
-
 
 export function computeTags(s: CharacterSpec): string[] {
   const t = new Set<string>();
@@ -149,10 +183,21 @@ export function computeTags(s: CharacterSpec): string[] {
 }
 
 // --- Mix variants: "mix:" + groups of <slot letter><8-char seed> ---
-export const MIX_SLOTS = { B: ['body', 'head'], E: ['ears'], F: ['eyes', 'brows', 'mouth', 'nose', 'cheeks'], H: ['hat'], O: ['outfit'], A: ['accessory'], S: ['scene'], C: ['palette', 'finish'] } as const;
+export const MIX_SLOTS = {
+  B: ['body', 'head'],
+  E: ['ears'],
+  F: ['eyes', 'brows', 'mouth', 'nose', 'cheeks'],
+  H: ['hat'],
+  O: ['outfit'],
+  A: ['accessory'],
+  S: ['scene'],
+  C: ['palette', 'finish'],
+} as const;
 export type MixSlot = keyof typeof MIX_SLOTS;
 const MIX_LAYER_SLOT: Record<string, MixSlot> = Object.fromEntries(
-  (Object.entries(MIX_SLOTS) as [MixSlot, readonly string[]][]).flatMap(([slot, layers]) => layers.map((l) => [l, slot])),
+  (Object.entries(MIX_SLOTS) as [MixSlot, readonly string[]][]).flatMap(([slot, layers]) =>
+    layers.map((l) => [l, slot]),
+  ),
 );
 
 export function parseMix(variant: string): Partial<Record<MixSlot, string>> | null {
@@ -169,7 +214,9 @@ export function parseMix(variant: string): Partial<Record<MixSlot, string>> | nu
 }
 
 export function encodeMix(m: Partial<Record<MixSlot, string>>): string | undefined {
-  const parts = (Object.keys(MIX_SLOTS) as MixSlot[]).filter((k) => m[k]).map((k) => k + m[k]!.replace('-', ''));
+  const parts = (Object.keys(MIX_SLOTS) as MixSlot[])
+    .filter((k) => m[k])
+    .map((k) => k + m[k]!.replace('-', ''));
   return parts.length ? `mix:${parts.join('')}` : undefined;
 }
 

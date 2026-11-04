@@ -9,7 +9,11 @@ export class MaterialKit {
   private cache = new Map<string, THREE.Material>();
   private textures: THREE.Texture[] = [];
 
-  constructor(private readonly quality: 'low' | 'medium' | 'high' = 'high') {}
+  /** `fog: false` for characters/boxes: scene fog must never wash out the toy itself. */
+  constructor(
+    private readonly quality: 'low' | 'medium' | 'high' = 'high',
+    private readonly fog = true,
+  ) {}
 
   /** Vinyl skin in the character's finish. */
   vinyl(color: string, finish: Finish): THREE.MeshPhysicalMaterial {
@@ -154,6 +158,7 @@ export class MaterialKit {
 
   /** Register a material created elsewhere so it is disposed with the kit. */
   own<T extends THREE.Material>(m: T): T {
+    if (!this.fog) (m as unknown as { fog: boolean }).fog = false;
     this.cache.set(`own:${m.uuid}`, m);
     return m;
   }
@@ -174,6 +179,7 @@ export class MaterialKit {
     let m = this.cache.get(key);
     if (!m) {
       m = make();
+      if (!this.fog) (m as unknown as { fog: boolean }).fog = false;
       this.cache.set(key, m);
     }
     return m;

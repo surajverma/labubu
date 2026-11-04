@@ -158,6 +158,16 @@ export class App {
     document.body.classList.toggle('reduce-motion', s.reducedMotion);
   }
 
+  get hasModal(): boolean {
+    return this.modals.length > 0;
+  }
+
+  /** Drops queued toasts (used by screenshot scripts). */
+  clearToasts(): void {
+    this.toastQueue = [];
+    this.toastsEl.replaceChildren();
+  }
+
   get currentId(): string | undefined {
     return this.current?.id;
   }
@@ -189,7 +199,9 @@ export class App {
       b.classList.toggle('on', this.current?.tab === id);
       b.querySelector('.dot')?.remove();
       const n = this.tabBadges[id];
-      if (n) b.append(h('span', { class: 'dot' }, String(n)));
+      if (n) b.append(h('span', { class: 'dot', 'aria-hidden': 'true' }, String(n)));
+      const t = this.tabs.find((x) => x.id === id);
+      if (t) b.setAttribute('aria-label', n ? `${t.label} (${n} new)` : t.label);
     }
     this.tabbar.classList.toggle('hidden', !this.current?.showTabs);
   }
@@ -289,7 +301,11 @@ export class App {
           h(
             'div',
             { class: 'stack' },
-            h('button', { class: `btn block ${danger ? '' : 'purple'}`, onclick: () => finish(true) }, ok),
+            h(
+              'button',
+              { class: `btn block ${danger ? '' : 'purple'}`, onclick: () => finish(true) },
+              ok,
+            ),
             h('button', { class: 'btn ghost block', onclick: () => finish(false) }, 'Cancel'),
           ),
         ],
@@ -319,10 +335,13 @@ export class App {
     this.toastsEl.append(t);
     const fast = this.toastQueue.length > 0;
     t.style.animationDuration = fast ? '1.6s' : '2.6s';
-    setTimeout(() => {
-      t.remove();
-      this.nextToast();
-    }, fast ? 1650 : 2700);
+    setTimeout(
+      () => {
+        t.remove();
+        this.nextToast();
+      },
+      fast ? 1650 : 2700,
+    );
   }
 
   tap(): void {

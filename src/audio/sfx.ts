@@ -18,7 +18,9 @@ class Sfx {
   /** Must be called from a user gesture at least once (autoplay rules). */
   unlock(): void {
     if (!this.ctx) {
-      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AC =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AC) return;
       this.ctx = new AC();
       this.master = this.ctx.createGain();
@@ -44,7 +46,15 @@ class Sfx {
     if (this.ctx?.state === 'suspended') void this.ctx.resume();
   }
 
-  private tone(freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.3, when = 0, slideTo?: number, dest?: AudioNode): void {
+  private tone(
+    freq: number,
+    dur: number,
+    type: OscillatorType = 'sine',
+    vol = 0.3,
+    when = 0,
+    slideTo?: number,
+    dest?: AudioNode,
+  ): void {
     if (!this.ctx || !this.master) return;
     const t = this.ctx.currentTime + when;
     const o = this.ctx.createOscillator();
@@ -60,7 +70,14 @@ class Sfx {
     o.stop(t + dur + 0.02);
   }
 
-  private noise(dur: number, freq: number, q = 1, vol = 0.3, when = 0, type: BiquadFilterType = 'bandpass'): void {
+  private noise(
+    dur: number,
+    freq: number,
+    q = 1,
+    vol = 0.3,
+    when = 0,
+    type: BiquadFilterType = 'bandpass',
+  ): void {
     if (!this.ctx || !this.master || !this.noiseBuf) return;
     const t = this.ctx.currentTime + when;
     const s = this.ctx.createBufferSource();
@@ -134,7 +151,8 @@ class Sfx {
       this.tone(f * 2, 0.3, 'sine', 0.05, i * 0.09 + 0.02);
     });
     if (r === 'legendary' || r === 'secret') {
-      for (let i = 0; i < 10; i++) this.tone(2000 + Math.random() * 2000, 0.12, 'sine', 0.04, 0.5 + i * 0.06);
+      for (let i = 0; i < 10; i++)
+        this.tone(2000 + Math.random() * 2000, 0.12, 'sine', 0.04, 0.5 + i * 0.06);
     }
   }
 
@@ -156,7 +174,8 @@ class Sfx {
   private stopMusic(): void {
     if (this.musicTimer !== null) clearInterval(this.musicTimer);
     this.musicTimer = null;
-    if (this.ctx && this.musicGain) this.musicGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.5);
+    if (this.ctx && this.musicGain)
+      this.musicGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.5);
   }
 
   private schedule(): void {
@@ -174,9 +193,13 @@ class Sfx {
       const ch = chords[Math.floor(bar / 2) % 4]!;
       const step = this.beat % 8;
       const when = this.nextBeat - this.ctx.currentTime;
-      if (step === 0) ch.forEach((f) => this.tone(f / 2, spb * 8, 'sine', 0.12, when, undefined, this.musicGain!));
+      if (step === 0)
+        ch.forEach((f) =>
+          this.tone(f / 2, spb * 8, 'sine', 0.12, when, undefined, this.musicGain!),
+        );
       const arp = [0, 1, 2, 1, 2, 0, 1, 2][step]!;
-      if (step % 2 === 0 || Math.random() < 0.3) this.tone(ch[arp]! * 2, spb * 1.6, 'triangle', 0.08, when, undefined, this.musicGain!);
+      if (step % 2 === 0 || Math.random() < 0.3)
+        this.tone(ch[arp]! * 2, spb * 1.6, 'triangle', 0.08, when, undefined, this.musicGain!);
       this.nextBeat += spb;
       this.beat++;
     }

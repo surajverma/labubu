@@ -1,9 +1,5 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { TUNABLES } from '../config';
 import type { Quality } from './character';
 
@@ -12,7 +8,14 @@ export interface Backdrop {
   skyTop: string;
   skyBottom: string;
   /** Light tint multipliers. */
-  light?: { hemiSky?: string; hemiGround?: string; key?: string; keyIntensity?: number; rim?: string; ambient?: number };
+  light?: {
+    hemiSky?: string;
+    hemiGround?: string;
+    key?: string;
+    keyIntensity?: number;
+    rim?: string;
+    ambient?: number;
+  };
   fog?: { color: string; near: number; far: number };
   update?(t: number, dt: number): void;
   dispose(): void;
@@ -44,9 +47,6 @@ export class Stage {
   private readonly shadow: THREE.Mesh;
   private backdrop: Backdrop | null = null;
   private skyTex: THREE.CanvasTexture | null = null;
-  private composer: EffectComposer | null = null;
-  private bloomPass: UnrealBloomPass | null = null;
-  private bloomOn = false;
   private callbacks = new Set<(dt: number, t: number) => void>();
   private clock = new THREE.Clock();
   private running = false;
@@ -65,7 +65,13 @@ export class Stage {
   gestures: GestureHandlers = {};
 
   constructor(readonly canvas: HTMLCanvasElement) {
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: false,
+      powerPreference: 'high-performance',
+      preserveDrawingBuffer: false,
+    });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.NeutralToneMapping;
     this.renderer.toneMappingExposure = 1.0;
@@ -101,7 +107,12 @@ export class Stage {
     const st = new THREE.CanvasTexture(cv);
     this.shadow = new THREE.Mesh(
       new THREE.PlaneGeometry(1.9, 1.5),
-      new THREE.MeshBasicMaterial({ map: st, transparent: true, depthWrite: false, toneMapped: false }),
+      new THREE.MeshBasicMaterial({
+        map: st,
+        transparent: true,
+        depthWrite: false,
+        toneMapped: false,
+      }),
     );
     this.shadow.rotation.x = -Math.PI / 2;
     this.shadow.position.y = 0.016;
@@ -132,7 +143,6 @@ export class Stage {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    this.composer?.setSize(w, h);
     this.applyFraming();
   }
 
@@ -149,7 +159,14 @@ export class Stage {
    * Frame a subject so it fills the area between UI insets (in CSS px from top/bottom).
    * `fill` = fraction of the free area the subject's height should take.
    */
-  frameInsets(height: number, width: number, aimY: number, topPx: number, bottomPx: number, fill = 0.9): void {
+  frameInsets(
+    height: number,
+    width: number,
+    aimY: number,
+    topPx: number,
+    bottomPx: number,
+    fill = 0.9,
+  ): void {
     const viewH = this.canvas.clientHeight || window.innerHeight;
     const avail = Math.max(160, viewH - topPx - bottomPx);
     this.frame((height / fill) * (viewH / avail), width, aimY, (bottomPx - topPx) / (2 * viewH));
@@ -158,8 +175,8 @@ export class Stage {
   private applyFraming(): void {
     const vfov = THREE.MathUtils.degToRad(this.camera.fov);
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * this.camera.aspect);
-    const dH = (this.frameHeight / 2) / Math.tan(vfov / 2);
-    const dW = (this.frameWidth / 2) / Math.tan(hfov / 2);
+    const dH = this.frameHeight / 2 / Math.tan(vfov / 2);
+    const dW = this.frameWidth / 2 / Math.tan(hfov / 2);
     const dist = Math.max(dH, dW) * this.zoom;
     const visibleH = 2 * Math.tan(vfov / 2) * dist;
     const aim = this.aimY - this.yShift * visibleH;
@@ -200,7 +217,10 @@ export class Stage {
       tex.colorSpace = THREE.SRGBColorSpace;
       this.scene.background = tex;
       if (b === this.backdrop) this.skyTex = tex;
-      this.scene.fog = b.fog ? new THREE.Fog(b.fog.color, b.fog.near, b.fog.far) : null;
+      // Fog only for the far background: never start it at the subject's distance.
+      this.scene.fog = b.fog
+        ? new THREE.Fog(b.fog.color, Math.max(b.fog.near, 10), Math.max(b.fog.far, 22))
+        : null;
     }
     const L = b.light ?? {};
     this.hemi.color.set(L.hemiSky ?? '#ffffff');
@@ -209,23 +229,6 @@ export class Stage {
     this.key.color.set(L.key ?? '#fff3e6');
     this.key.intensity = (L.keyIntensity ?? 2.1) * 1.15;
     this.rim.color.set(L.rim ?? '#ffffff');
-  }
-
-  /** Bloom is reserved for Epic+ characters (and never on Low quality). */
-  setBloom(on: boolean, strength = 0.45): void {
-    on = on && this.quality !== 'low';
-    this.bloomOn = on;
-    if (on && !this.composer) {
-      const w = this.canvas.clientWidth || window.innerWidth;
-      const h = this.canvas.clientHeight || window.innerHeight;
-      this.composer = new EffectComposer(this.renderer);
-      this.composer.addPass(new RenderPass(this.scene, this.camera));
-      this.bloomPass = new UnrealBloomPass(new THREE.Vector2(w / 2, h / 2), strength, 0.5, 0.92);
-      this.composer.addPass(this.bloomPass);
-      this.composer.addPass(new OutputPass());
-      this.composer.setSize(w, h);
-    }
-    if (this.bloomPass) this.bloomPass.strength = strength;
   }
 
   onFrame(cb: (dt: number, t: number) => void): () => void {
@@ -279,13 +282,15 @@ export class Stage {
   }
 
   render(): void {
-    if (this.bloomOn && this.composer) this.composer.render();
-    else this.renderer.render(this.scene, this.camera);
+    this.renderer.render(this.scene, this.camera);
   }
 
   // --- Gestures: drag to rotate, vertical flick to spin, pinch to zoom, tap. ---
   private dragging = false;
-  private pointers = new Map<number, { x: number; y: number; x0: number; y0: number; t0: number }>();
+  private pointers = new Map<
+    number,
+    { x: number; y: number; x0: number; y0: number; t0: number }
+  >();
   private pinch0 = 0;
   private zoom0 = 1;
   private lastX = 0;
@@ -297,7 +302,13 @@ export class Stage {
     el.style.touchAction = 'none';
     el.addEventListener('pointerdown', (e) => {
       el.setPointerCapture(e.pointerId);
-      this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now() });
+      this.pointers.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY,
+        x0: e.clientX,
+        y0: e.clientY,
+        t0: performance.now(),
+      });
       if (this.pointers.size === 2) {
         const [a, b] = [...this.pointers.values()];
         this.pinch0 = Math.hypot(a!.x - b!.x, a!.y - b!.y);
@@ -317,7 +328,8 @@ export class Stage {
       if (this.mode === 'pinch' && this.pointers.size === 2) {
         const [a, b] = [...this.pointers.values()];
         const d = Math.hypot(a!.x - b!.x, a!.y - b!.y);
-        if (this.pinch0 > 0) this.targetZoom = THREE.MathUtils.clamp(this.zoom0 * (this.pinch0 / d), 0.65, 1.35);
+        if (this.pinch0 > 0)
+          this.targetZoom = THREE.MathUtils.clamp(this.zoom0 * (this.pinch0 / d), 0.65, 1.35);
         return;
       }
       const dx = p.x - p.x0,
@@ -361,19 +373,27 @@ export class Stage {
    * Temporarily swaps in other content (for thumbnails/share cards), runs `fn`, then
    * restores everything. Nothing is shown on screen because it all happens in one task.
    */
-  withContent<T>(backdrop: Backdrop | null, subject: THREE.Object3D, framing: [number, number, number, number], fn: () => T): T {
+  withContent<T>(
+    backdrop: Backdrop | null,
+    subject: THREE.Object3D,
+    framing: [number, number, number, number],
+    fn: () => T,
+  ): T {
     const prevBackdrop = this.backdrop;
     const prevChildren = [...this.turntable.children];
-    const prevFrame: [number, number, number, number] = [this.frameHeight, this.frameWidth, this.aimY, this.yShift];
+    const prevFrame: [number, number, number, number] = [
+      this.frameHeight,
+      this.frameWidth,
+      this.aimY,
+      this.yShift,
+    ];
     const prevRot = this.turntable.rotation.y;
     const prevZoom = this.zoom;
-    const prevBloom = this.bloomOn;
     const prevBg = this.scene.background;
     const prevFog = this.scene.fog;
     prevChildren.forEach((c) => this.turntable.remove(c));
     if (prevBackdrop) this.world.remove(prevBackdrop.group);
     this.backdrop = null;
-    this.bloomOn = false;
     if (backdrop) this.applyBackdropLook(backdrop);
     else {
       this.scene.background = new THREE.Color('#fff4ec');
@@ -404,7 +424,6 @@ export class Stage {
       this.scene.fog = prevFog;
       this.turntable.rotation.y = prevRot;
       this.zoom = prevZoom;
-      this.bloomOn = prevBloom;
       [this.frameHeight, this.frameWidth, this.aimY, this.yShift] = prevFrame;
       this.applyFraming();
     }
@@ -434,7 +453,6 @@ export class Stage {
     this.renderer.setSize(w0, h0, false);
     this.camera.aspect = oldAspect;
     this.camera.updateProjectionMatrix();
-    this.composer?.setSize(w0, h0);
     this.applyFraming();
     this.render();
     return cv;

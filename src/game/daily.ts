@@ -6,7 +6,12 @@ import { dayKey, daysBetween, isoWeek } from './time';
 const CLOCK_TOLERANCE_MS = 10 * 60 * 1000;
 
 export type DailyStatus =
-  | { kind: 'claimable'; streak: number; reward: { boxes: number; premium: number; coins: number }; freeze: boolean }
+  | {
+      kind: 'claimable';
+      streak: number;
+      reward: { boxes: number; premium: number; coins: number };
+      freeze: boolean;
+    }
   | { kind: 'claimed' }
   | { kind: 'clock' };
 

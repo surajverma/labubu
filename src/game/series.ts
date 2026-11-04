@@ -61,7 +61,10 @@ export function getPool(seriesId: number): Pool {
   if (!series) throw new Error(`Unknown series ${seriesId}`);
   const q = quotas(series.size);
   const rng = rngFromString(`series:${series.id}`);
-  const byTier = Object.fromEntries(RARITIES.map((r) => [r, [] as PoolEntry[]])) as Record<Rarity, PoolEntry[]>;
+  const byTier = Object.fromEntries(RARITIES.map((r) => [r, [] as PoolEntry[]])) as Record<
+    Rarity,
+    PoolEntry[]
+  >;
   const entries: PoolEntry[] = [];
   const seen = new Set<string>();
   let guard = 0;
@@ -76,7 +79,10 @@ export function getPool(seriesId: number): Pool {
     entries.push(e);
   }
   // Number the series #1..#N, rarest last (like a checklist).
-  entries.sort((a, b) => RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity) || a.seed.localeCompare(b.seed));
+  entries.sort(
+    (a, b) =>
+      RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity) || a.seed.localeCompare(b.seed),
+  );
   entries.forEach((e, i) => (e.index = i + 1));
   const pool = { series, entries, byTier };
   pools.set(seriesId, pool);
@@ -95,7 +101,11 @@ export interface Draw {
 }
 
 /** Draws one box result. Premium boxes never give Commons; themed boxes guarantee a tag. */
-export function drawBox(kind: BoxKind, rng: Rng, opts: { tag?: string; seriesId?: number; variant?: string } = {}): Draw {
+export function drawBox(
+  kind: BoxKind,
+  rng: Rng,
+  opts: { tag?: string; seriesId?: number; variant?: string } = {},
+): Draw {
   const pool = getPool(opts.seriesId ?? latestSeries().id);
   const tiers = RARITIES.filter((r) => kind !== 'premium' || r !== 'common');
   const tier = pickWeighted(rng, tiers, (r) => RARITY_ODDS[r]);
@@ -110,7 +120,14 @@ export function drawBox(kind: BoxKind, rng: Rng, opts: { tag?: string; seriesId?
     }
   }
   const e = list[Math.floor(rng() * list.length)]!;
-  return { seed: e.seed, v: pool.series.version, series: pool.series.id, index: e.index, rarity: e.rarity, variant: opts.variant };
+  return {
+    seed: e.seed,
+    v: pool.series.version,
+    series: pool.series.id,
+    index: e.index,
+    rarity: e.rarity,
+    variant: opts.variant,
+  };
 }
 
 export function specOf(d: { seed: string; v: number; variant?: string }): CharacterSpec {

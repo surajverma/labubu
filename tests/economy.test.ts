@@ -55,7 +55,15 @@ function simulate(days: number, seed: string) {
           oneOffCoins += set.coins;
         }
       }
-      save.collection = specs.map((sp, i) => ({ uid: String(i), seed: sp.seed, v: sp.generatorVersion, foundAt: 0, favourite: false, count: 1, source: 'box' as const }));
+      save.collection = specs.map((sp, i) => ({
+        uid: String(i),
+        seed: sp.seed,
+        v: sp.generatorVersion,
+        foundAt: 0,
+        favourite: false,
+        count: 1,
+        source: 'box' as const,
+      }));
       for (const a of ACHIEVEMENTS) {
         if (!save.achievements.includes(a.id) && a.done(save)) {
           save.achievements.push(a.id);
@@ -83,7 +91,8 @@ describe('economy', () => {
   it('a normal player earns about 3–5 boxes per day', () => {
     for (const seed of ['a', 'b', 'c']) {
       const r = simulate(30, seed);
-      if (process.env.ECON_DEBUG) console.log(seed, r.avg.toFixed(2), r.oneOffCoins, r.perDay.join(','));
+      if (process.env.ECON_DEBUG)
+        console.log(seed, r.avg.toFixed(2), r.oneOffCoins, r.perDay.join(','));
       expect(r.avg, JSON.stringify(r.perDay)).toBeGreaterThanOrEqual(3);
       expect(r.avg).toBeLessThanOrEqual(5);
       // Never zero boxes on a day.
@@ -91,7 +100,13 @@ describe('economy', () => {
     }
   });
   it('recycle values match the spec', () => {
-    expect(ECONOMY.recycle).toEqual({ common: 5, rare: 15, epic: 50, legendary: 200, secret: null });
+    expect(ECONOMY.recycle).toEqual({
+      common: 5,
+      rare: 15,
+      epic: 50,
+      legendary: 200,
+      secret: null,
+    });
     expect(ECONOMY.shop).toEqual({ box: 100, premium: 400, themed: 250 });
   });
   it('streak rewards: day 3 = 2 boxes, day 7 = premium', () => {

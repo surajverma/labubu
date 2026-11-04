@@ -5,6 +5,7 @@ import { buildBackdrop } from '../render/scenes';
 import { EffectRunner, poof } from '../render/effects';
 import type { Stage } from '../render/stage';
 import { rarityRank } from '../gen/rarity';
+import { Aura } from '../render/aura';
 
 /**
  * Shows one character in its scene on the shared stage. Handles framing around UI insets,
@@ -19,6 +20,7 @@ export class CharacterView {
   private scaleIn = -1;
   private extra: ((dt: number, t: number) => void)[] = [];
   bloom = true;
+  private aura: Aura | null = null;
 
   constructor(private stage: Stage) {
     this.effects = new EffectRunner(stage.world);
@@ -40,6 +42,7 @@ export class CharacterView {
         if (o.name === 'spinner') o.rotation.y += dt * 9;
       });
       this.effects.update(dt);
+      this.aura?.update(dt);
       for (const f of this.extra) f(dt, t);
     });
   }
@@ -86,7 +89,12 @@ export class CharacterView {
     this.stage.turntable.add(rig.root);
     this.rig = rig;
     this.stage.setShadow(true);
-    this.stage.setBloom(this.bloom && rarityRank(spec.rarity) >= 2, spec.rarity === 'secret' ? 0.6 : 0.4);
+    this.aura?.dispose();
+    this.aura = null;
+    if (this.bloom && rarityRank(spec.rarity) >= 2) {
+      this.aura = new Aura(spec.rarity, rig.height);
+      this.stage.turntable.add(this.aura.group);
+    }
     this.frame();
     if (opts.animateIn) {
       rig.root.scale.setScalar(0.01);
@@ -106,7 +114,8 @@ export class CharacterView {
   clear(): void {
     this.rig?.dispose();
     this.rig = null;
-    this.stage.setBloom(false);
+    this.aura?.dispose();
+    this.aura = null;
   }
 
   /** Forget the current backdrop so the next show() rebuilds it. */

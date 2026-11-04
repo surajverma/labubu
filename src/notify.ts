@@ -29,7 +29,11 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * available (today if it isn't claimed yet and the hour hasn't passed). Replaces any
  * earlier reminder, so there is never more than one pending.
  */
-export async function scheduleDailyReminder(opts: { enabled: boolean; hour: number; claimedToday: boolean }): Promise<void> {
+export async function scheduleDailyReminder(opts: {
+  enabled: boolean;
+  hour: number;
+  claimedToday: boolean;
+}): Promise<void> {
   if (!isNative) return;
   try {
     await LocalNotifications.cancel({ notifications: [{ id: DAILY_ID }] });

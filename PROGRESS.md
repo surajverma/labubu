@@ -17,11 +17,18 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 10. Achievements, profile, Phase 2 content, seasons, themed boxes | done — `docs/screens/m10-*.png` |
 | 11. Phase 2 polish + balance, v0.2.0 | done — economy sim incl. sets/achievements ≈ 4.5 boxes/day |
 | 12. Share card + gift/trade codes | done — `tests/gifts.test.ts`, `docs/screens/m12-*.png` |
+| 13. Play Store readiness, v0.3.0 | done — `store/`, `docs/privacy.md`, a11y audit `node scripts/a11y.mjs` |
 
 ## Next
-- Milestone 13: Play Store readiness (AAB, icons, feature graphic, framed screenshots, store texts, privacy policy, Data Safety, accessibility), v0.3.0.
+- Milestone 14: online features — **blocked on Checkpoint B** (Supabase project URL + anon key).
+- Milestone 15: final review against the spec.
 
 ## Waiting on the owner
+- **Checkpoint C — Play Store.** Everything is prepared in `store/` (texts, data safety,
+  content rating notes, release notes, 512 icon, feature graphic, 8 screenshots) and
+  `docs/privacy.md`. Owner: create a Play Console developer account (one-time fee), enable
+  GitHub Pages for `/docs` (privacy URL), add the signing secrets (Checkpoint A) so CI
+  produces the signed AAB, then upload `SpinBuddies-aab` and press publish.
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
   (not committed) and its base64 + password were given to the owner in chat. Owner must add
   GitHub secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`
@@ -122,6 +129,16 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   ids are stored per device. Trade = two gifts (help sheet in Settings → Friends).
 - Share card: 1080×1350 PNG (buddy in its scene + name, rarity badge with icon, seed, app
   name) via the native share sheet (Filesystem + Share), Web Share or download.
+
+- **Bloom → rarity aura.** Post-process bloom (UnrealBloomPass) washed out the pastel
+  vinyl (lit surfaces are already > 1.0 in linear HDR) and costs fill-rate on mid-range
+  phones, so Epic+ get a cheap additive aura instead (glow; + rotating rays for
+  Legendary/Secret; rainbow cycling for Secret). The composer is no longer bundled.
+- Play policy: `SCHEDULE_EXACT_ALARM` (added by the notifications plugin) is removed via
+  manifest merger — the daily reminder uses inexact scheduling. Target SDK 36.
+- Accessibility: every button has an accessible name (audit script), min text 12px,
+  rarity = icon + name + colour, switches use role=switch on the row, tab badges are
+  announced.
 
 ## Open problems
 - none

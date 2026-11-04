@@ -1,4 +1,11 @@
-import { SAVE_VERSION, newSave, defaultSettings, defaultDaily, defaultStats, type SaveData } from './schema';
+import {
+  SAVE_VERSION,
+  newSave,
+  defaultSettings,
+  defaultDaily,
+  defaultStats,
+  type SaveData,
+} from './schema';
 
 /**
  * Migrations from saveVersion N to N+1. Each takes the raw object of version N and returns
@@ -29,7 +36,8 @@ export function migrate(input: unknown): SaveData {
   if (!input || typeof input !== 'object') throw new Error('Save is not an object');
   let s = { ...(input as Raw) };
   let v = typeof s.saveVersion === 'number' ? s.saveVersion : 0;
-  if (v > SAVE_VERSION) throw new SaveTooNewError(`Save version ${v} is newer than this app (${SAVE_VERSION})`);
+  if (v > SAVE_VERSION)
+    throw new SaveTooNewError(`Save version ${v} is newer than this app (${SAVE_VERSION})`);
   while (v < SAVE_VERSION) {
     const m = MIGRATIONS[v];
     if (!m) throw new Error(`No migration from save version ${v}`);

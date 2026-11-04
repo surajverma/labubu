@@ -11,6 +11,7 @@ import { activeSeason, SEASONAL_BOX_CHANCE, SEASONS } from '../../game/seasons';
 import { nextResetTime } from '../../game/daily';
 import { haptic } from '../../platform';
 import { BlindBox } from '../../render/box';
+import { Aura } from '../../render/aura';
 import { buildCharacter, type CharacterRig } from '../../render/character';
 import { beam, EffectRunner, sparkles } from '../../render/effects';
 import { buildBackdrop } from '../../render/scenes';
@@ -43,19 +44,35 @@ export class BoxScreen implements Screen {
   private beamFx: ReturnType<typeof beam> | null = null;
   private kind: BoxKind = 'normal';
   private beamFade = -1;
+  private aura: Aura | null = null;
   private opts: { tag?: string; variant?: string; paid?: boolean } = {};
 
   constructor(private app: App) {
-    this.skipLayer = h('div', { class: 'passthrough', style: 'position:absolute;inset:0;display:none;pointer-events:auto', onclick: () => this.skip() });
-    this.el = h('div', { class: 'screen' }, this.top, this.info, h('div', { class: 'spacer passthrough' }), this.bottom, this.skipLayer);
+    this.skipLayer = h('div', {
+      class: 'passthrough',
+      style: 'position:absolute;inset:0;display:none;pointer-events:auto',
+      onclick: () => this.skip(),
+    });
+    this.el = h(
+      'div',
+      { class: 'screen' },
+      this.top,
+      this.info,
+      h('div', { class: 'spacer passthrough' }),
+      this.bottom,
+      this.skipLayer,
+    );
   }
 
   enter(params?: Record<string, unknown>): void {
     this.kind = (params?.kind as BoxKind) ?? 'normal';
-    this.opts = { tag: params?.tag as string | undefined, variant: params?.variant as string | undefined, paid: Boolean(params?.paid) };
+    this.opts = {
+      tag: params?.tag as string | undefined,
+      variant: params?.variant as string | undefined,
+      paid: Boolean(params?.paid),
+    };
     const st = this.app.stage;
     st.setBackdrop(buildBackdrop('boxroom'));
-    st.setBloom(false);
     st.resetView();
     st.gestures = { canRotate: () => this.phase === 'revealed' };
     this.effects = new EffectRunner(st.world);
@@ -71,7 +88,6 @@ export class BoxScreen implements Screen {
     this.effects?.clear();
     this.cleanup3D();
     this.app.stage.gestures = {};
-    this.app.stage.setBloom(false);
     this.skipLayer.style.display = 'none';
   }
 
@@ -88,12 +104,18 @@ export class BoxScreen implements Screen {
     this.box = null;
     this.rig?.dispose();
     this.rig = null;
+    this.aura?.dispose();
+    this.aura = null;
     this.beamFx = null;
   }
 
   private renderTop(title: string): void {
     const s = this.app.game.save;
-    this.top.replaceChildren(h('h1', null, title), counter('coins', s.coins, () => this.showShop()), counter('boxes', s.boxes));
+    this.top.replaceChildren(
+      h('h1', null, title),
+      counter('coins', s.coins, () => this.showShop()),
+      counter('boxes', s.boxes),
+    );
   }
 
   private showIdle(): void {
@@ -103,34 +125,75 @@ export class BoxScreen implements Screen {
     this.showTabs = true;
     this.app.updateTabs();
     const st = this.app.stage;
-    this.box = new BlindBox({ color: this.kind === 'premium' ? '#8a6bff' : this.kind === 'themed' ? '#3fb6a8' : '#ff8a6b', label: this.kind === 'premium' ? 'PREMIUM' : undefined });
+    this.box = new BlindBox({
+      color: this.kind === 'premium' ? '#8a6bff' : this.kind === 'themed' ? '#3fb6a8' : '#ff8a6b',
+      label: this.kind === 'premium' ? 'PREMIUM' : undefined,
+    });
     st.world.add(this.box.group);
     st.setShadow(true, 0.9);
     st.frameInsets(1.5, 2.6, 0.62, 150, 250, 0.75);
     const g = this.app.game;
     const pool = getPool(latestSeries().id);
-    const found = new Set(g.save.collection.filter((c) => c.series === pool.series.id).map((c) => c.index)).size;
+    const found = new Set(
+      g.save.collection.filter((c) => c.series === pool.series.id).map((c) => c.index),
+    ).size;
     this.renderTop('Blind Boxes');
     this.info.replaceChildren(
       h('div', { class: 'name', style: 'font-size:22px' }, pool.series.name),
-      h('div', { class: 'sub' }, h('span', { class: 'chip light' }, `${found} / ${pool.series.size} found`)),
+      h(
+        'div',
+        { class: 'sub' },
+        h('span', { class: 'chip light' }, `${found} / ${pool.series.size} found`),
+      ),
     );
     const season = activeSeason(dayKey(Date.now()));
-    if (season) this.info.append(h('div', { class: 'hint', style: 'margin-top:8px' }, `${season.icon} ${season.name} special: some boxes come in festive colours!`));
+    if (season)
+      this.info.append(
+        h(
+          'div',
+          { class: 'hint', style: 'margin-top:8px' },
+          `${season.icon} ${season.name} special: some boxes come in festive colours!`,
+        ),
+      );
     const n = g.save.boxes;
     const special = this.kind !== 'normal';
     const prem = g.save.premiumBoxes;
     this.bottom.replaceChildren(
       special
-        ? h('button', { class: 'btn', style: 'min-width:240px', onclick: () => this.open() }, icon('gift', 24), 'Open it!')
+        ? h(
+            'button',
+            { class: 'btn', style: 'min-width:240px', onclick: () => this.open() },
+            icon('gift', 24),
+            'Open it!',
+          )
         : n > 0
-          ? h('button', { class: 'btn', style: 'min-width:240px', onclick: () => this.open() }, icon('gift', 24), `Open a box (${n})`)
-          : h('div', { class: 'hint' }, `No boxes left — next free box in ${untilMidnight()}, or visit the shop!`),
+          ? h(
+              'button',
+              { class: 'btn', style: 'min-width:240px', onclick: () => this.open() },
+              icon('gift', 24),
+              `Open a box (${n})`,
+            )
+          : h(
+              'div',
+              { class: 'hint' },
+              `No boxes left — next free box in ${untilMidnight()}, or visit the shop!`,
+            ),
       h(
         'div',
         { class: 'row' },
-        !special && prem > 0 ? h('button', { class: 'btn purple small', onclick: () => this.startKind('premium', {}) }, `Premium (${prem})`) : null,
-        h('button', { class: 'btn ghost small', onclick: () => this.showShop() }, icon('shop', 20), 'Shop'),
+        !special && prem > 0
+          ? h(
+              'button',
+              { class: 'btn purple small', onclick: () => this.startKind('premium', {}) },
+              `Premium (${prem})`,
+            )
+          : null,
+        h(
+          'button',
+          { class: 'btn ghost small', onclick: () => this.showShop() },
+          icon('shop', 20),
+          'Shop',
+        ),
         h('button', { class: 'btn ghost small', onclick: () => this.showOdds() }, 'Odds'),
       ),
     );
@@ -152,29 +215,66 @@ export class BoxScreen implements Screen {
       h(
         'div',
         { class: 'card row', style: 'margin-bottom:10px' },
-        h('div', { style: `width:52px;height:52px;border-radius:16px;background:${color};display:grid;place-items:center;color:#fff;flex:none` }, icon('gift', 28)),
-        h('div', { style: 'flex:1' }, h('div', { style: 'font-family:var(--display);font-weight:700;font-size:18px' }, title), h('div', { class: 'muted', style: 'font-size:13px' }, desc)),
-        h('button', { class: 'btn small', disabled: g.save.coins < price, onclick: onBuy, 'aria-label': `Buy ${title} for ${price} coins` }, icon('coin', 18), String(price)),
+        h(
+          'div',
+          {
+            style: `width:52px;height:52px;border-radius:16px;background:${color};display:grid;place-items:center;color:#fff;flex:none`,
+          },
+          icon('gift', 28),
+        ),
+        h(
+          'div',
+          { style: 'flex:1' },
+          h('div', { style: 'font-family:var(--display);font-weight:700;font-size:18px' }, title),
+          h('div', { class: 'muted', style: 'font-size:13px' }, desc),
+        ),
+        h(
+          'button',
+          {
+            class: 'btn small',
+            disabled: g.save.coins < price,
+            onclick: onBuy,
+            'aria-label': `Buy ${title} for ${price} coins`,
+          },
+          icon('coin', 18),
+          String(price),
+        ),
       );
     const close = this.app.sheet([
       h('h3', null, 'Box shop'),
-      h('p', { class: 'muted', style: 'margin-top:-6px' }, `You have ${g.save.coins} coins. Coins are earned by playing — never bought.`),
-      item('Blind box', 'One random buddy. Goes to your box pile.', ECONOMY.shop.box, '#ff8a6b', () => {
-        if (!g.buy('normal')) return;
-        sfx.coin();
-        close();
-        this.app.toast('+1 box');
-        this.showIdle();
-      }),
-      item(`${theme.icon} ${theme.name} box`, `Always contains a buddy with ${theme.tag} things.`, ECONOMY.shop.themed, '#3fb6a8', () => {
-        if (!g.buy('themed')) return;
-        sfx.coin();
-        close();
-        this.kind = 'themed';
-        this.opts = { tag: theme.tag, paid: true };
-        this.showIdle();
-        setTimeout(() => this.open(), 300);
-      }),
+      h(
+        'p',
+        { class: 'muted', style: 'margin-top:-6px' },
+        `You have ${g.save.coins} coins. Coins are earned by playing — never bought.`,
+      ),
+      item(
+        'Blind box',
+        'One random buddy. Goes to your box pile.',
+        ECONOMY.shop.box,
+        '#ff8a6b',
+        () => {
+          if (!g.buy('normal')) return;
+          sfx.coin();
+          close();
+          this.app.toast('+1 box');
+          this.showIdle();
+        },
+      ),
+      item(
+        `${theme.icon} ${theme.name} box`,
+        `Always contains a buddy with ${theme.tag} things.`,
+        ECONOMY.shop.themed,
+        '#3fb6a8',
+        () => {
+          if (!g.buy('themed')) return;
+          sfx.coin();
+          close();
+          this.kind = 'themed';
+          this.opts = { tag: theme.tag, paid: true };
+          this.showIdle();
+          setTimeout(() => this.open(), 300);
+        },
+      ),
       item('Premium box', 'No Commons — Rare or better!', ECONOMY.shop.premium, '#8a6bff', () => {
         if (!g.buy('premium')) return;
         sfx.coin();
@@ -223,7 +323,13 @@ export class BoxScreen implements Screen {
     haptic.land();
     const spec = this.result.spec;
     const color = RARITY_INFO[spec.rarity].color;
-    this.beamFx = this.effects.add(beam(new THREE.Vector3(0, 0.6, 0), color === 'rainbow' ? '#ffffff' : color, spec.rarity === 'secret'));
+    this.beamFx = this.effects.add(
+      beam(
+        new THREE.Vector3(0, 0.6, 0),
+        color === 'rainbow' ? '#ffffff' : color,
+        spec.rarity === 'secret',
+      ),
+    );
     this.rig.root.visible = true;
     this.rig.root.position.y = 0.4;
     this.rig.root.scale.setScalar(0.2);
@@ -239,14 +345,23 @@ export class BoxScreen implements Screen {
     this.box?.sink();
     this.beamFade = 1;
     const st = this.app.stage;
-    st.setBloom(rarityRank(spec.rarity) >= 2, spec.rarity === 'secret' ? 0.4 : 0.22);
+    if (rarityRank(spec.rarity) >= 2) {
+      this.aura = new Aura(spec.rarity, this.rig.height);
+      st.turntable.add(this.aura.group);
+    }
     st.frameInsets(this.rig.height, 2.0, this.rig.height * 0.5, 150, 250, 0.88);
     this.rig.hop(1);
     sfx.fanfare(spec.rarity);
     if (rarityRank(spec.rarity) >= 1) haptic.success();
-    const colors = spec.rarity === 'secret' ? ['#ff6b6b', '#ffc93c', '#5fd068', '#4aa8ff', '#b56bff'] : [RARITY_INFO[spec.rarity].color, '#ffffff', spec.palette.skin];
-    this.effects.add(sparkles(new THREE.Vector3(0, 0.6, 0), colors, rarityRank(spec.rarity) >= 3 ? 160 : 90));
-    if (rarityRank(spec.rarity) >= 3 && !this.app.game.save.settings.reducedMotion) document.body.append(Object.assign(h('div', { class: 'flash' }), {}));
+    const colors =
+      spec.rarity === 'secret'
+        ? ['#ff6b6b', '#ffc93c', '#5fd068', '#4aa8ff', '#b56bff']
+        : [RARITY_INFO[spec.rarity].color, '#ffffff', spec.palette.skin];
+    this.effects.add(
+      sparkles(new THREE.Vector3(0, 0.6, 0), colors, rarityRank(spec.rarity) >= 3 ? 160 : 90),
+    );
+    if (rarityRank(spec.rarity) >= 3 && !this.app.game.save.settings.reducedMotion)
+      document.body.append(Object.assign(h('div', { class: 'flash' }), {}));
     setTimeout(() => document.querySelector('.flash')?.remove(), 700);
 
     const g = this.app.game;
@@ -260,9 +375,19 @@ export class BoxScreen implements Screen {
           'div',
           { class: 'sub' },
           rarityChip(spec.rarity),
-          isNew ? h('span', { class: 'new' }, 'NEW!') : h('span', { class: 'new dup' }, `×${owned.count}`),
-          owned.index ? h('span', { class: 'chip light' }, `#${String(owned.index).padStart(4, '0')}`) : null,
-          owned.variant && SEASONS[owned.variant] ? h('span', { class: 'chip light' }, `${SEASONS[owned.variant]!.icon} ${SEASONS[owned.variant]!.name} edition`) : null,
+          isNew
+            ? h('span', { class: 'new' }, 'NEW!')
+            : h('span', { class: 'new dup' }, `×${owned.count}`),
+          owned.index
+            ? h('span', { class: 'chip light' }, `#${String(owned.index).padStart(4, '0')}`)
+            : null,
+          owned.variant && SEASONS[owned.variant]
+            ? h(
+                'span',
+                { class: 'chip light' },
+                `${SEASONS[owned.variant]!.icon} ${SEASONS[owned.variant]!.name} edition`,
+              )
+            : null,
         ),
       ),
     );
@@ -270,12 +395,40 @@ export class BoxScreen implements Screen {
       h(
         'div',
         { class: 'row' },
-        h('button', { class: 'btn ghost small', onclick: () => this.setHome(owned) }, icon('home', 20), 'Show on Home'),
-        h('button', { class: 'btn ghost small', onclick: () => this.app.push('detail', { uid: owned.uid }) }, icon('book', 20), 'Details'),
+        h(
+          'button',
+          { class: 'btn ghost small', onclick: () => this.setHome(owned) },
+          icon('home', 20),
+          'Show on Home',
+        ),
+        h(
+          'button',
+          { class: 'btn ghost small', onclick: () => this.app.push('detail', { uid: owned.uid }) },
+          icon('book', 20),
+          'Details',
+        ),
       ),
       g.save.boxes > 0
-        ? h('button', { class: 'btn', style: 'min-width:240px', onclick: () => (this.app.tap(), this.showIdle(), this.open()) }, icon('gift', 24), `Open another (${g.save.boxes})`)
-        : h('button', { class: 'btn purple', style: 'min-width:240px', onclick: () => this.app.go('collection') }, icon('book', 24), 'See my collection'),
+        ? h(
+            'button',
+            {
+              class: 'btn',
+              style: 'min-width:240px',
+              onclick: () => (this.app.tap(), this.showIdle(), this.open()),
+            },
+            icon('gift', 24),
+            `Open another (${g.save.boxes})`,
+          )
+        : h(
+            'button',
+            {
+              class: 'btn purple',
+              style: 'min-width:240px',
+              onclick: () => this.app.go('collection'),
+            },
+            icon('book', 24),
+            'See my collection',
+          ),
     );
     this.showTabs = true;
     this.app.updateTabs();
@@ -301,6 +454,7 @@ export class BoxScreen implements Screen {
     }
     this.effects?.update(dt);
     if (this.rig) this.rig.update(dt, t);
+    this.aura?.update(dt);
     if (this.phase === 'shaking') {
       this.t += dt;
       if (Math.floor((this.t - dt) / 0.35) !== Math.floor(this.t / 0.35)) {
@@ -338,14 +492,28 @@ function untilMidnight(): string {
 export function oddsContent(): HTMLElement[] {
   return [
     h('h3', null, 'Box odds'),
-    h('p', { class: 'muted' }, 'Every blind box gives one random buddy from the current series. These are the exact chances for each rarity:'),
+    h(
+      'p',
+      { class: 'muted' },
+      'Every blind box gives one random buddy from the current series. These are the exact chances for each rarity:',
+    ),
     h(
       'div',
       { class: 'list' },
       ...RARITIES.map((r) =>
-        h('div', { class: 'item' }, rarityChip(r), h('span', { class: 'label' }), h('span', { class: 'val' }, `${(RARITY_ODDS[r] * 100).toFixed(1)}%`)),
+        h(
+          'div',
+          { class: 'item' },
+          rarityChip(r),
+          h('span', { class: 'label' }),
+          h('span', { class: 'val' }, `${(RARITY_ODDS[r] * 100).toFixed(1)}%`),
+        ),
       ),
     ),
-    h('p', { class: 'muted', style: 'font-size:14px' }, 'Premium boxes never contain Commons (the other chances scale up). Themed boxes always contain a buddy with that week’s theme. Boxes are only ever bought with coins earned in the game — never with real money.'),
+    h(
+      'p',
+      { class: 'muted', style: 'font-size:14px' },
+      'Premium boxes never contain Commons (the other chances scale up). Themed boxes always contain a buddy with that week’s theme. Boxes are only ever bought with coins earned in the game — never with real money.',
+    ),
   ];
 }

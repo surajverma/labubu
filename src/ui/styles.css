@@ -181,21 +181,29 @@ button {
   min-height: 56px;
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 5px 0 var(--primary-d), 0 10px 20px rgba(226, 87, 58, 0.25);
+  box-shadow:
+    0 5px 0 var(--primary-d),
+    0 10px 20px rgba(226, 87, 58, 0.25);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: transform 0.08s, box-shadow 0.08s;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s;
 }
 .btn:active {
   transform: translateY(4px);
-  box-shadow: 0 1px 0 var(--primary-d), 0 4px 10px rgba(226, 87, 58, 0.2);
+  box-shadow:
+    0 1px 0 var(--primary-d),
+    0 4px 10px rgba(226, 87, 58, 0.2);
 }
 .btn.purple {
   background: var(--purple);
-  box-shadow: 0 5px 0 var(--purple-d), 0 10px 20px rgba(90, 63, 224, 0.25);
+  box-shadow:
+    0 5px 0 var(--purple-d),
+    0 10px 20px rgba(90, 63, 224, 0.25);
 }
 .btn.purple:active {
   box-shadow: 0 1px 0 var(--purple-d);
@@ -203,7 +211,9 @@ button {
 .btn.ghost {
   background: #fff;
   color: var(--ink);
-  box-shadow: 0 5px 0 var(--line), 0 8px 16px rgba(90, 40, 30, 0.08);
+  box-shadow:
+    0 5px 0 var(--line),
+    0 8px 16px rgba(90, 40, 30, 0.08);
 }
 .btn.ghost:active {
   box-shadow: 0 1px 0 var(--line);
@@ -295,7 +305,7 @@ button {
   border-radius: 9px;
   background: var(--primary);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 18px;
   padding: 0 5px;
 }
@@ -811,7 +821,7 @@ body.reduce-motion .toast {
   height: 22px;
 }
 .sday .slabel {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink2);
   font-weight: 600;
 }
@@ -845,7 +855,9 @@ body.reduce-motion .toast {
   border: none;
   border-radius: 16px;
   background: #fff;
-  box-shadow: 0 3px 0 var(--line), 0 4px 12px rgba(90, 40, 30, 0.08);
+  box-shadow:
+    0 3px 0 var(--line),
+    0 4px 12px rgba(90, 40, 30, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -859,7 +871,7 @@ body.reduce-motion .toast {
   font-size: 22px;
 }
 .lvl .s {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--gold);
   letter-spacing: 1px;
 }

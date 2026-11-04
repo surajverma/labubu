@@ -2,7 +2,13 @@ import * as THREE from 'three';
 import { APP } from '../config';
 
 /** Rounded box that keeps BoxGeometry UVs (so it can carry a printed texture). */
-export function roundedBoxUV(w: number, h: number, d: number, r: number, seg = 6): THREE.BufferGeometry {
+export function roundedBoxUV(
+  w: number,
+  h: number,
+  d: number,
+  r: number,
+  seg = 6,
+): THREE.BufferGeometry {
   const g = new THREE.BoxGeometry(w, h, d, seg, seg, seg);
   const pos = g.getAttribute('position') as THREE.BufferAttribute;
   const nrm = g.getAttribute('normal') as THREE.BufferAttribute;
@@ -14,7 +20,11 @@ export function roundedBoxUV(w: number, h: number, d: number, r: number, seg = 6
   const n = new THREE.Vector3();
   for (let i = 0; i < pos.count; i++) {
     p.fromBufferAttribute(pos, i);
-    inner.set(THREE.MathUtils.clamp(p.x, -hw, hw), THREE.MathUtils.clamp(p.y, -hh, hh), THREE.MathUtils.clamp(p.z, -hd, hd));
+    inner.set(
+      THREE.MathUtils.clamp(p.x, -hw, hw),
+      THREE.MathUtils.clamp(p.y, -hh, hh),
+      THREE.MathUtils.clamp(p.z, -hd, hd),
+    );
     n.subVectors(p, inner);
     if (n.lengthSq() < 1e-10) n.fromBufferAttribute(nrm, i);
     n.normalize();
@@ -82,12 +92,26 @@ export class BlindBox {
 
   constructor(o: BlindBoxOptions = {}) {
     const color = o.color ?? '#ff8a6b';
-    const art = new THREE.CanvasTexture(boxArt(color, o.dots ?? 'rgba(255,255,255,0.35)', o.label ?? APP.name));
+    const art = new THREE.CanvasTexture(
+      boxArt(color, o.dots ?? 'rgba(255,255,255,0.35)', o.label ?? APP.name),
+    );
     art.colorSpace = THREE.SRGBColorSpace;
     art.anisotropy = 4;
     this.texes.push(art);
-    const mat = new THREE.MeshPhysicalMaterial({ map: art, roughness: 0.45, clearcoat: 0.8, clearcoatRoughness: 0.2 });
-    const ribbonMat = new THREE.MeshPhysicalMaterial({ color: o.ribbon ?? '#ffd34d', roughness: 0.35, clearcoat: 1, sheen: 0.6 });
+    const mat = new THREE.MeshPhysicalMaterial({
+      map: art,
+      roughness: 0.45,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.2,
+    });
+    const ribbonMat = new THREE.MeshPhysicalMaterial({
+      color: o.ribbon ?? '#ffd34d',
+      roughness: 0.35,
+      clearcoat: 1,
+      sheen: 0.6,
+    });
+    mat.fog = false;
+    ribbonMat.fog = false;
     this.mats.push(mat, ribbonMat);
     const W = 1.15,
       H = 1.0;

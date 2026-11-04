@@ -20,7 +20,11 @@ export interface BlobParams {
 }
 
 /** Deforms a unit-sphere direction into a point on the blob surface. */
-export function blobPoint(p: BlobParams, d: THREE.Vector3, out = new THREE.Vector3()): THREE.Vector3 {
+export function blobPoint(
+  p: BlobParams,
+  d: THREE.Vector3,
+  out = new THREE.Vector3(),
+): THREE.Vector3 {
   const pw = p.power ?? 2;
   let x = d.x,
     y = d.y,
@@ -124,7 +128,11 @@ const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
 const _c = new THREE.Vector3();
 /** Surface normal of the blob at unit direction d (finite differences). */
-export function blobNormal(p: BlobParams, d: THREE.Vector3, out = new THREE.Vector3()): THREE.Vector3 {
+export function blobNormal(
+  p: BlobParams,
+  d: THREE.Vector3,
+  out = new THREE.Vector3(),
+): THREE.Vector3 {
   const up = Math.abs(d.y) > 0.9 ? _t1.set(1, 0, 0) : _t1.set(0, 1, 0);
   const t = _t2.crossVectors(d, up).normalize();
   const b = up.crossVectors(d, t).normalize();
@@ -148,7 +156,11 @@ export function blobAnchor(
 ): { pos: THREE.Vector3; normal: THREE.Vector3 } {
   const az = THREE.MathUtils.degToRad(azimuthDeg);
   const el = THREE.MathUtils.degToRad(elevationDeg);
-  const d = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+  const d = new THREE.Vector3(
+    Math.sin(az) * Math.cos(el),
+    Math.sin(el),
+    Math.cos(az) * Math.cos(el),
+  );
   return { pos: blobPoint(p, d), normal: blobNormal(p, d) };
 }
 
@@ -205,12 +217,26 @@ export function taperedTube(
 }
 
 /** Rounded box (soft cube) for blocky parts and props. */
-export function roundedBox(w: number, h: number, d: number, r: number, seg = 4): THREE.BufferGeometry {
+export function roundedBox(
+  w: number,
+  h: number,
+  d: number,
+  r: number,
+  seg = 4,
+): THREE.BufferGeometry {
   // Superellipsoid approximation: cheap and always smooth.
-  const g = blobGeometry({ rx: w / 2, ry: h / 2, rz: d / 2, power: Math.max(2.5, 2 + (Math.min(w, h, d) / (r * 2)) * 1.2) }, {
-    widthSegments: 12 + seg * 4,
-    heightSegments: 8 + seg * 3,
-  });
+  const g = blobGeometry(
+    {
+      rx: w / 2,
+      ry: h / 2,
+      rz: d / 2,
+      power: Math.max(2.5, 2 + (Math.min(w, h, d) / (r * 2)) * 1.2),
+    },
+    {
+      widthSegments: 12 + seg * 4,
+      heightSegments: 8 + seg * 3,
+    },
+  );
   return g;
 }
 

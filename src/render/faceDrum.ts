@@ -32,7 +32,7 @@ export class FaceDrum {
   ) {
     const N = FaceDrum.N;
     this.W = resolution;
-    this.H = Math.round(resolution * (Math.PI * 2) / N / 2);
+    this.H = Math.round((resolution * (Math.PI * 2)) / N / 2);
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.W;
     this.canvas.height = this.H * N;
@@ -85,6 +85,7 @@ export class FaceDrum {
       polygonOffset: true,
       polygonOffsetFactor: -2,
       polygonOffsetUnits: -4,
+      fog: false,
     });
     if (ink.glow) {
       this.mat.emissive = new THREE.Color('#9ff8ff');
@@ -142,7 +143,15 @@ export class FaceDrum {
     this.blinkCtx.clearRect(0, 0, this.blinkCanvas.width, this.blinkCanvas.height);
     if (!face) return;
     const y0 = (N - cell - 1) * this.H * s;
-    drawFace(this.blinkCtx, face, this.ink, (this.W * s) / 2, y0 + (this.H * s) / 2, (this.W * s) / 2, true);
+    drawFace(
+      this.blinkCtx,
+      face,
+      this.ink,
+      (this.W * s) / 2,
+      y0 + (this.H * s) / 2,
+      (this.W * s) / 2,
+      true,
+    );
     this.blinkTex.needsUpdate = true;
   }
 
