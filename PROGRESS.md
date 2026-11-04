@@ -69,5 +69,9 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 - Icon/splash are rendered from the 3D mascot: `node scripts/render-art.mjs` (preview on
   :4173) then `python3 scripts/make-icons.py`. Purple background for contrast.
 
+- **Tags:** this cloud session cannot push tags (git proxy + API refuse). The workflow
+  therefore auto-creates tag `v<package.json version>` + a GitHub Release on the first
+  build of a new version. Releasing = bump `version` in `package.json` and push.
+
 ## Open problems
 - none

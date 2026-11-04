@@ -114,3 +114,26 @@ jobs:
         with:
           files: out/*.apk
           generate_release_notes: true
+
+      # Auto-release: the first build of a new package.json version creates tag v<version>
+      # and a GitHub Release with the APK (so releases don't need a manual tag push).
+      - name: Check for new version
+        id: ver
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+        run: |
+          V="v$(node -p "require('./package.json').version")"
+          if git ls-remote --exit-code --tags origin "refs/tags/$V" >/dev/null; then
+            echo "Tag $V already exists"
+          else
+            echo "tag=$V" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Auto GitHub Release for new version
+        if: steps.ver.outputs.tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: SpinBuddies ${{ steps.ver.outputs.tag }}
+          files: out/*.apk
+          generate_release_notes: true

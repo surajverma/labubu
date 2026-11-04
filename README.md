@@ -85,7 +85,9 @@ manually:
 
 `versionCode` = the GitHub run number; `versionName` = `version` in `package.json`.
 
-To release: bump `version` in `package.json`, commit, then `git tag v0.2.0 && git push --tags`.
+To release: bump `version` in `package.json` and push. The first build of a new version
+automatically creates the `v<version>` tag and a GitHub Release with the APK (pushing a
+`v*` tag by hand also works).
 
 ### Signing
 
