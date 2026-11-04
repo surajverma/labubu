@@ -50,6 +50,7 @@ export class App {
   tabs: TabDef[] = [
     { id: 'home', label: 'Home', icon: 'home', screen: 'home' },
     { id: 'box', label: 'Boxes', icon: 'box', screen: 'box' },
+    { id: 'play', label: 'Play', icon: 'play', screen: 'orders' },
     { id: 'book', label: 'Book', icon: 'book', screen: 'collection' },
     { id: 'more', label: 'Settings', icon: 'gear', screen: 'settings' },
   ];
@@ -155,6 +156,10 @@ export class App {
     const q: Quality = s.quality === 'auto' ? (s.detectedQuality ?? 'high') : s.quality;
     this.stage.setQuality(q);
     document.body.classList.toggle('reduce-motion', s.reducedMotion);
+  }
+
+  get currentId(): string | undefined {
+    return this.current?.id;
   }
 
   get quality(): Quality {

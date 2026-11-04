@@ -29,9 +29,15 @@ function pickPart(rng: Rng, layer: Layer, version: number, secret: boolean): Pic
  * seed + version + layer), so picks never shift when another layer changes.
  */
 export function generateCharacter(seed: string, version = LATEST_GENERATOR_VERSION, variant?: string): CharacterSpec {
-  const key = `${seed}|v${version}${variant ? `|${variant}` : ''}`;
-  const stream = (name: string) => rngFromString(`${key}|${name}`);
-  const secret = stream('secret')() < SECRET_CHANCE;
+  const mix = variant?.startsWith('mix:') ? parseMix(variant) : null;
+  const key = `${seed}|v${version}${variant && !mix ? `|${variant}` : ''}`;
+  // A "mix" variant takes some layers from other seeds (Order challenge results).
+  const stream = (name: string) => {
+    const slot = mix ? MIX_LAYER_SLOT[name] : undefined;
+    const src = slot && mix?.[slot];
+    return rngFromString(src ? `${src}|v${version}|${name}` : `${key}|${name}`);
+  };
+  const secret = !mix && stream('secret')() < SECRET_CHANCE;
 
   let score = 0;
   const pick = (layer: Layer): PartDef => {
@@ -57,7 +63,7 @@ export function generateCharacter(seed: string, version = LATEST_GENERATOR_VERSI
   score += -Math.log(fin.weight / finTotal);
   let finish: Finish = fin.id;
 
-  const palette = generatePalette(stream('palette'), variant);
+  const palette = generatePalette(stream('palette'), mix ? undefined : variant);
   if (palette.harmony === 'neon') score += 1.2;
   if (palette.harmony === 'seasonal') score += 0.8;
 
@@ -140,6 +146,31 @@ export function computeTags(s: CharacterSpec): string[] {
   if (s.palette.seasonal) t.add(s.palette.seasonal);
   for (const c of colorTagsOf(s)) t.add(c);
   return [...t].sort();
+}
+
+// --- Mix variants: "mix:" + groups of <slot letter><8-char seed> ---
+export const MIX_SLOTS = { B: ['body', 'head'], E: ['ears'], F: ['eyes', 'brows', 'mouth', 'nose', 'cheeks'], H: ['hat'], O: ['outfit'], A: ['accessory'], S: ['scene'], C: ['palette', 'finish'] } as const;
+export type MixSlot = keyof typeof MIX_SLOTS;
+const MIX_LAYER_SLOT: Record<string, MixSlot> = Object.fromEntries(
+  (Object.entries(MIX_SLOTS) as [MixSlot, readonly string[]][]).flatMap(([slot, layers]) => layers.map((l) => [l, slot])),
+);
+
+export function parseMix(variant: string): Partial<Record<MixSlot, string>> | null {
+  const body = variant.slice(4);
+  if (body.length % 9 !== 0) return null;
+  const out: Partial<Record<MixSlot, string>> = {};
+  for (let i = 0; i < body.length; i += 9) {
+    const slot = body[i] as MixSlot;
+    if (!(slot in MIX_SLOTS)) return null;
+    const raw = body.slice(i + 1, i + 9);
+    out[slot] = `${raw.slice(0, 4)}-${raw.slice(4)}`;
+  }
+  return out;
+}
+
+export function encodeMix(m: Partial<Record<MixSlot, string>>): string | undefined {
+  const parts = (Object.keys(MIX_SLOTS) as MixSlot[]).filter((k) => m[k]).map((k) => k + m[k]!.replace('-', ''));
+  return parts.length ? `mix:${parts.join('')}` : undefined;
 }
 
 /** Re-roll only the face layers (Home "Face only" spin). Deterministic from the given key. */

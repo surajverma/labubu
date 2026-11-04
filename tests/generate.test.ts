@@ -124,3 +124,25 @@ describe('compatibility rules', () => {
     }
   });
 });
+
+import { encodeMix, parseMix } from '../src/gen/generate';
+describe('mix variants (order results)', () => {
+  it('takes chosen layers from other seeds, deterministically', () => {
+    const base = 'ABCD-EFGH';
+    const hatFrom = 'ZZZZ-2222';
+    const faceFrom = 'K7Q2-MX9A';
+    const v = encodeMix({ H: hatFrom, F: faceFrom })!;
+    expect(parseMix(v)).toEqual({ H: hatFrom, F: faceFrom });
+    const m = generateCharacter(base, 1, v);
+    expect(m).toEqual(generateCharacter(base, 1, v));
+    const b = generateCharacter(base, 1);
+    const h = generateCharacter(hatFrom, 1);
+    const f = generateCharacter(faceFrom, 1);
+    expect(m.body).toBe(b.body);
+    expect(m.scene).toBe(b.scene);
+    expect(m.face.mouth).toBe(f.face.mouth);
+    // Hat may be removed by a rule (helmet), otherwise it comes from the hat seed.
+    if (m.outfit !== 'astronaut' && m.outfit !== 'diver') expect(m.hat).toBe(h.hat);
+    expect(m.rarity).not.toBe('secret');
+  });
+});

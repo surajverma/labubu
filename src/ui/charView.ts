@@ -57,15 +57,18 @@ export class CharacterView {
     this.clear();
   }
 
-  setInsets(top: number, bottom: number): void {
+  private fill = 0.88;
+
+  setInsets(top: number, bottom: number, fill = 0.88): void {
     this.insets = { top, bottom };
+    this.fill = fill;
     this.frame();
   }
 
   frame(): void {
     if (!this.rig) return;
     const H = this.rig.height;
-    this.stage.frameInsets(H, 2.0, H * 0.5, this.insets.top, this.insets.bottom, 0.88);
+    this.stage.frameInsets(H, 2.0, H * 0.5, this.insets.top, this.insets.bottom, this.fill);
   }
 
   show(spec: CharacterSpec, opts: { animateIn?: boolean; scene?: boolean } = {}): CharacterRig {

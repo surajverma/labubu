@@ -5,6 +5,8 @@ import { BoxScreen } from './ui/screens/box';
 import { CollectionScreen } from './ui/screens/collection';
 import { DetailScreen } from './ui/screens/detail';
 import { SettingsScreen } from './ui/screens/settings';
+import { OrdersScreen } from './ui/screens/orders';
+import { OrderScreen } from './ui/screens/order';
 import { SETS, setProgress } from './game/sets';
 import { specFor } from './game/game';
 import { sfx } from './audio/sfx';
@@ -26,6 +28,8 @@ async function boot(): Promise<void> {
   app.register('collection', () => new CollectionScreen(app));
   app.register('detail', () => new DetailScreen(app));
   app.register('settings', () => new SettingsScreen(app));
+  app.register('orders', () => new OrdersScreen(app));
+  app.register('order', () => new OrderScreen(app));
 
   // Set completion → badge (+ coins from Phase 2).
   app.game.hooks.push((g, reason) => {

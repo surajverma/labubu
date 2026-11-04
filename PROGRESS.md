@@ -13,9 +13,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 6. Phase 1 polish, icon/splash, README, v0.1.0 | done — perf check `node scripts/perf.mjs` |
 | 7. Coins, economy, recycling, shop | done — `tests/economy.test.ts`, `docs/screens/m7-*.png` |
 | 8. Daily boxes, streaks, notifications, clock guard | done — `tests/daily.test.ts`, `docs/screens/m8-*.png` |
+| 9. Order challenge | done — `tests/orders.test.ts`, `docs/screens/m9-*.png`, tuning `npx vite-node scripts/tune-orders.ts` |
 
 ## Next
-- Milestone 9: Order challenge (lock/spin, scoring, 30 levels, solver, tutorial, daily order).
+- Milestone 10: achievements + profile, Phase 2 content (generator v2 live), seasonal palettes, weekly themed box.
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
@@ -86,6 +87,15 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   is collected (never at first launch); a single one-shot reminder is (re)scheduled each
   time (default 18:00, configurable, can be turned off). Daily login coins come with it.
 - CI concurrency queues runs instead of cancelling them.
+
+- Orders: 8 lockable slots (Face, Ears, Hat, Outfit, Holding, Scene, Colours, Shape).
+  A spun character = base seed + `mix:` variant naming one seed per slot (deterministic,
+  stored like any character, so 3★ results can be kept). Each spin of a slot lands on a
+  helpful part with probability `luck` (Street 1 0.42, 2 0.34, 3 0.30, daily 0.32), else a
+  plain random pick. Stars: all met = 3, all but one = 2, ≥ half = 1. Score = 100/req
+  + 100 + 15/spare spin when complete. Coins: full for new stars, half on replays; daily
+  order pays once per day. `solve()` proves solvability (incl. rule conflicts like hats
+  hiding top ears / helmets removing hats).
 
 ## Open problems
 - none

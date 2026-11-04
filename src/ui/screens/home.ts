@@ -11,6 +11,8 @@ import { CharacterView } from '../charView';
 import { h, icon } from '../dom';
 import { counter, rarityChip, seg } from '../widgets';
 
+let hintShown = false;
+
 /** Home: the current favourite on display. Spinning here is a free toy (nothing is saved). */
 export class HomeScreen implements Screen {
   readonly id = 'home';
@@ -83,7 +85,11 @@ export class HomeScreen implements Screen {
     void requestMotionPermission().then((ok) => {
       if (ok) this.stopShake = watchShake(() => this.spin(1));
     });
-    if (!g.save.collection.length && g.save.boxes > 0) this.hintTimer = window.setTimeout(() => this.app.toast('Tap “Boxes” to open your first blind box!'), 600);
+    if (!g.save.collection.length && g.save.boxes > 0) this.hintTimer = window.setTimeout(() => {
+        if (this.app.currentId !== 'home' || hintShown) return;
+        hintShown = true;
+        this.app.toast('Tap “Boxes” to open your first blind box!');
+      }, 1500);
   }
 
   leave(): void {
