@@ -1,5 +1,6 @@
 import { displayName, specFor } from '../../game/game';
 import { partName } from '../../gen/parts';
+import { SEASONS } from '../../game/seasons';
 import { sfx } from '../../audio/sfx';
 import { haptic } from '../../platform';
 import type { OwnedCharacter } from '../../save/schema';
@@ -99,6 +100,8 @@ export class DetailScreen implements Screen {
         o.count > 1 ? h('span', { class: 'chip light' }, `×${o.count} copies`) : null,
         o.index ? h('span', { class: 'chip light' }, `#${String(o.index).padStart(4, '0')}`) : null,
         o.nickname ? h('span', { class: 'chip light' }, s.name) : null,
+        o.variant && SEASONS[o.variant] ? h('span', { class: 'chip light' }, `${SEASONS[o.variant]!.icon} ${SEASONS[o.variant]!.name} edition`) : null,
+        o.variant?.startsWith('mix:') ? h('span', { class: 'chip light' }, 'Order special') : null,
       ),
       h(
         'div',

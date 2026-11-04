@@ -7,6 +7,7 @@ import { getPool, latestSeries, type BoxKind } from '../../game/series';
 import { ECONOMY } from '../../game/economy';
 import { weeklyTheme } from '../../game/themes';
 import { dayKey } from '../../game/time';
+import { activeSeason, SEASONAL_BOX_CHANCE, SEASONS } from '../../game/seasons';
 import { haptic } from '../../platform';
 import { BlindBox } from '../../render/box';
 import { buildCharacter, type CharacterRig } from '../../render/character';
@@ -113,6 +114,8 @@ export class BoxScreen implements Screen {
       h('div', { class: 'name', style: 'font-size:22px' }, pool.series.name),
       h('div', { class: 'sub' }, h('span', { class: 'chip light' }, `${found} / ${pool.series.size} found`)),
     );
+    const season = activeSeason(dayKey(Date.now()));
+    if (season) this.info.append(h('div', { class: 'hint', style: 'margin-top:8px' }, `${season.icon} ${season.name} special: some boxes come in festive colours!`));
     const n = g.save.boxes;
     const special = this.kind !== 'normal';
     const prem = g.save.premiumBoxes;
@@ -187,7 +190,9 @@ export class BoxScreen implements Screen {
     if (this.phase !== 'idle' || !this.box) return;
     const g = this.app.game;
     if (this.kind === 'normal' && g.save.boxes <= 0) return;
-    const r = g.openBox(this.kind, cryptoRng, this.opts);
+    const season = activeSeason(dayKey(Date.now()));
+    const variant = season && cryptoRng() < SEASONAL_BOX_CHANCE ? season.id : undefined;
+    const r = g.openBox(this.kind, cryptoRng, { ...this.opts, variant });
     if (!r) return;
     this.kind = 'normal';
     this.opts = {};
@@ -256,6 +261,7 @@ export class BoxScreen implements Screen {
           rarityChip(spec.rarity),
           isNew ? h('span', { class: 'new' }, 'NEW!') : h('span', { class: 'new dup' }, `×${owned.count}`),
           owned.index ? h('span', { class: 'chip light' }, `#${String(owned.index).padStart(4, '0')}`) : null,
+          owned.variant && SEASONS[owned.variant] ? h('span', { class: 'chip light' }, `${SEASONS[owned.variant]!.icon} ${SEASONS[owned.variant]!.name} edition`) : null,
         ),
       ),
     );

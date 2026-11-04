@@ -34,7 +34,7 @@ export function runDev(mode: string, params: URLSearchParams): void {
   const forced = params.get('seeds')?.split(',');
   for (let i = 0; i < n; i++) {
     const seed = forced?.[i] ?? randomSeed(rng);
-    const spec = generateCharacter(seed, v);
+    const spec = generateCharacter(seed, v, params.get('variant') ?? undefined);
     const cell = document.createElement('div');
     const img = new Image();
     img.src = thumbs.render(spec, 256);

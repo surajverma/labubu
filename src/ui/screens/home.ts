@@ -103,7 +103,7 @@ export class HomeScreen implements Screen {
 
   private updateBoxes(): void {
     const s = this.app.game.save;
-    this.boxesEl.replaceChildren(h('div', { class: 'row', style: 'gap:6px' }, counter('coins', s.coins, () => this.app.go('box')), counter('boxes', s.boxes, () => this.app.go('box'))));
+    this.boxesEl.replaceChildren(h('div', { class: 'row', style: 'gap:6px' }, h('button', { class: 'iconbtn', style: 'width:40px;height:40px', 'aria-label': 'Profile', onclick: () => (this.app.tap(), this.app.push('profile')) }, icon('user', 20)), counter('coins', s.coins, () => this.app.go('box')), counter('boxes', s.boxes, () => this.app.go('box'))));
   }
 
   private renderName(name: string, note?: string): void {

@@ -55,6 +55,13 @@ export class SettingsScreen implements Screen {
     const qualities: Settings['quality'][] = ['auto', 'low', 'medium', 'high'];
     const extra = SETTINGS_SECTIONS.map((f) => f(this.app, () => this.render())).filter((x): x is HTMLElement => !!x);
     this.body.replaceChildren(
+      h(
+        'button',
+        { class: 'card row', style: 'width:100%;border:none;text-align:left;cursor:pointer;margin-top:4px', onclick: () => (this.app.tap(), this.app.push('profile')) },
+        h('div', { style: 'width:44px;height:44px;border-radius:14px;background:var(--bg2);display:grid;place-items:center;color:var(--primary)' }, icon('user')),
+        h('div', { style: 'flex:1' }, h('div', { style: 'font-family:var(--display);font-weight:700;font-size:18px' }, 'Your profile'), h('div', { class: 'muted', style: 'font-size:13px' }, `${this.app.game.save.achievements.length} achievements · ${this.app.game.save.badges.length} badges`)),
+        icon('back', 20),
+      ),
       h('h2', null, 'Sound & feel'),
       h('div', { class: 'list' }, this.switchRow('Sound effects', 'sound'), this.switchRow('Music', 'music', 'A soft background tune'), this.switchRow('Haptics', 'haptics', 'Little buzzes when things spin')),
       ...extra,

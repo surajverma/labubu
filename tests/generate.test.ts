@@ -27,6 +27,12 @@ describe('generateCharacter', () => {
     expect(h.digest('hex').slice(0, 16)).toMatchInlineSnapshot(`"4acb7c548e076736"`);
   });
 
+  it('never changes what existing v2 seeds produce (golden snapshot)', () => {
+    const h = createHash('sha256');
+    for (const s of seeds(500, 'golden2')) h.update(JSON.stringify(generateCharacter(s, 2)));
+    expect(h.digest('hex').slice(0, 16)).toMatchInlineSnapshot(`"d06d09d2038adb86"`);
+  });
+
   it('only uses parts available in its version', () => {
     for (const s of seeds(2000)) {
       const c = generateCharacter(s, 1);

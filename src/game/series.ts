@@ -16,7 +16,11 @@ export interface SeriesDef {
   size: number;
 }
 
-export const SERIES: SeriesDef[] = [{ id: 1, name: 'Series 1', version: 1, size: 1000 }];
+export const SERIES: SeriesDef[] = [
+  { id: 1, name: 'Series 1', version: 1, size: 1000 },
+  // Phase 2 content (generator v2): new parts, finishes and scenes.
+  { id: 2, name: 'Series 2', version: 2, size: 1200 },
+];
 
 export function latestSeries(): SeriesDef {
   return SERIES[SERIES.length - 1]!;

@@ -7,7 +7,7 @@ import { tierForScore, SECRET_CHANCE } from './rarity';
 import { FACE_LAYERS, type CharacterSpec, type FaceSpec, type Finish, type Layer, type PartDef } from './types';
 
 /** Generator version used for new characters. Old saves keep the version they were made with. */
-export const LATEST_GENERATOR_VERSION = 1;
+export const LATEST_GENERATOR_VERSION = 2;
 
 const MOODS = new Set(['happy', 'sleepy', 'cheeky', 'cool', 'shy', 'angry', 'surprised', 'silly', 'love', 'sad', 'sparkly', 'calm', 'cute', 'spooky', 'magic', 'cozy']);
 

@@ -14,9 +14,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 7. Coins, economy, recycling, shop | done — `tests/economy.test.ts`, `docs/screens/m7-*.png` |
 | 8. Daily boxes, streaks, notifications, clock guard | done — `tests/daily.test.ts`, `docs/screens/m8-*.png` |
 | 9. Order challenge | done — `tests/orders.test.ts`, `docs/screens/m9-*.png`, tuning `npx vite-node scripts/tune-orders.ts` |
+| 10. Achievements, profile, Phase 2 content, seasons, themed boxes | done — `docs/screens/m10-*.png` |
 
 ## Next
-- Milestone 10: achievements + profile, Phase 2 content (generator v2 live), seasonal palettes, weekly themed box.
+- Milestone 11: Phase 2 polish + balance pass, tag v0.2.0 (bump package.json → CI auto-release).
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
@@ -96,6 +97,16 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   + 100 + 15/spare spin when complete. Coins: full for new stars, half on replays; daily
   order pays once per day. `solve()` proves solvability (incl. rule conflicts like hats
   hiding top ears / helmets removing hats).
+
+- Phase 2 content is live: `LATEST_GENERATOR_VERSION = 2`, boxes draw from Series 2
+  (1,200 buddies, v2 parts/finishes/scenes); Series 1 characters keep v1. Both v1 and v2
+  are locked by golden-hash tests.
+- Seasonal palettes (Diwali, Holi, Christmas, New Year) are active around fixed dates
+  (`src/game/seasons.ts`; Diwali/Holi dates listed for 2026–2030 — extend yearly). During a
+  season 40% of boxes come as that season's variant (e.g. "Diwali edition"). Themed box
+  tag rotates every ISO week (`src/game/themes.ts`).
+- 20 achievements (`src/game/achievements.ts`) pay coins once; profile screen from Home
+  (person icon) and Settings. Toasts are queued one at a time.
 
 ## Open problems
 - none

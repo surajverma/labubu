@@ -7,6 +7,8 @@ import { DetailScreen } from './ui/screens/detail';
 import { SettingsScreen } from './ui/screens/settings';
 import { OrdersScreen } from './ui/screens/orders';
 import { OrderScreen } from './ui/screens/order';
+import { ProfileScreen } from './ui/screens/profile';
+import { newAchievements } from './game/achievements';
 import { SETS, setProgress } from './game/sets';
 import { specFor } from './game/game';
 import { sfx } from './audio/sfx';
@@ -30,6 +32,7 @@ async function boot(): Promise<void> {
   app.register('settings', () => new SettingsScreen(app));
   app.register('orders', () => new OrdersScreen(app));
   app.register('order', () => new OrderScreen(app));
+  app.register('profile', () => new ProfileScreen(app));
 
   // Set completion → badge (+ coins from Phase 2).
   app.game.hooks.push((g, reason) => {
@@ -51,6 +54,21 @@ async function boot(): Promise<void> {
     }
   });
 
+  // Achievements → coins + badge toast.
+  app.game.hooks.push((g, reason) => {
+    if (reason.startsWith('coins:achievement')) return;
+    for (const a of newAchievements(g.save)) {
+      g.save.achievements.push(a.id);
+      g.save.coins += a.coins;
+      g.save.stats.coinsEarned += a.coins;
+      if (reason !== 'import') {
+        setTimeout(() => {
+          app.toast(`${a.icon} Achievement: ${a.name}! +${a.coins} coins`);
+          sfx.coin();
+        }, 2400);
+      }
+    }
+  });
   app.onForeground.push(() => checkDaily(app));
   await app.start();
   (window as unknown as { __app: App; __ready: boolean }).__app = app;

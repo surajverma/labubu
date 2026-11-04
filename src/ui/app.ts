@@ -298,10 +298,31 @@ export class App {
     });
   }
 
+  private toastQueue: string[] = [];
+  private toastBusy = false;
+
+  /** Toasts show one at a time (queued) so bursts of rewards stay readable. */
   toast(msg: string): void {
+    if (this.toastQueue.length >= 8) this.toastQueue.shift();
+    this.toastQueue.push(msg);
+    if (!this.toastBusy) this.nextToast();
+  }
+
+  private nextToast(): void {
+    const msg = this.toastQueue.shift();
+    if (!msg) {
+      this.toastBusy = false;
+      return;
+    }
+    this.toastBusy = true;
     const t = h('div', { class: 'toast', role: 'status' }, msg);
     this.toastsEl.append(t);
-    setTimeout(() => t.remove(), 2700);
+    const fast = this.toastQueue.length > 0;
+    t.style.animationDuration = fast ? '1.6s' : '2.6s';
+    setTimeout(() => {
+      t.remove();
+      this.nextToast();
+    }, fast ? 1650 : 2700);
   }
 
   tap(): void {
