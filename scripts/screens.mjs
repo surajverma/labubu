@@ -14,8 +14,12 @@ page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 const shot = async (name, wait = 600) => { await page.waitForTimeout(wait); await page.screenshot({ path: `${out}/${prefix}-${name}.png` }); console.log('shot', name); };
 await page.goto('http://localhost:4173/');
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 30000 });
-await page.waitForSelector('button:has-text("Collect!")', { timeout: 4000 }).then((b) => b.click()).catch(() => {});
-await page.waitForTimeout(400);
+// Collect the daily gift sheet that opens on launch (retry until it's gone).
+await page.waitForSelector('button:has-text("Collect!")', { timeout: 5000 }).catch(() => {});
+for (let i = 0; i < 20 && (await page.$('#modal-root .sheet')); i++) {
+  await page.click('#modal-root .sheet button.btn', { timeout: 1000 }).catch(() => {});
+  await page.waitForTimeout(300);
+}
 await shot('home', 1500);
 await page.click('#tabbar [data-tab=box]');
 await shot('box', 1200);

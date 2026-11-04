@@ -23,8 +23,12 @@ try {
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto(`http://localhost:${PORT}/`);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 30000 });
-await page.waitForSelector('button:has-text("Collect!")', { timeout: 4000 }).then((b) => b.click()).catch(() => {});
-await page.waitForTimeout(400);
+// Collect the daily gift sheet that opens on launch (retry until it's gone).
+await page.waitForSelector('button:has-text("Collect!")', { timeout: 5000 }).catch(() => {});
+for (let i = 0; i < 20 && (await page.$('#modal-root .sheet')); i++) {
+  await page.click('#modal-root .sheet button.btn', { timeout: 1000 }).catch(() => {});
+  await page.waitForTimeout(300);
+}
   console.log('✓ app loaded');
 
   await page.click('#tabbar [data-tab=box]');
