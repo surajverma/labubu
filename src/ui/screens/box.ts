@@ -175,7 +175,7 @@ export class BoxScreen implements Screen {
     if (rarityRank(spec.rarity) >= 1) haptic.success();
     const colors = spec.rarity === 'secret' ? ['#ff6b6b', '#ffc93c', '#5fd068', '#4aa8ff', '#b56bff'] : [RARITY_INFO[spec.rarity].color, '#ffffff', spec.palette.skin];
     this.effects.add(sparkles(new THREE.Vector3(0, 0.6, 0), colors, rarityRank(spec.rarity) >= 3 ? 160 : 90));
-    if (rarityRank(spec.rarity) >= 3) document.body.append(Object.assign(h('div', { class: 'flash' }), {}));
+    if (rarityRank(spec.rarity) >= 3 && !this.app.game.save.settings.reducedMotion) document.body.append(Object.assign(h('div', { class: 'flash' }), {}));
     setTimeout(() => document.querySelector('.flash')?.remove(), 700);
 
     const g = this.app.game;

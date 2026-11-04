@@ -111,7 +111,7 @@ export function buildCharacter(
   // --- Body ---
   const bodyCy = legTop + bp.ry * 0.82;
   const bodyMesh = mesh(
-    blobGeometry(bp, { widthSegments: Math.round(64 * segScale), heightSegments: Math.round(48 * segScale) }),
+    blobGeometry(bp, { widthSegments: Math.round(56 * segScale), heightSegments: Math.round(40 * segScale) }),
     skin,
     bodyGroup,
   );
@@ -160,7 +160,7 @@ export function buildCharacter(
   headGroup.position.y = headY;
   root.add(headGroup);
   const headMesh = mesh(
-    blobGeometry(hp, { widthSegments: Math.round(72 * segScale), heightSegments: Math.round(56 * segScale) }),
+    blobGeometry(hp, { widthSegments: Math.round(64 * segScale), heightSegments: Math.round(48 * segScale) }),
     skin,
     headGroup,
   );

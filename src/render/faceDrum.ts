@@ -46,8 +46,8 @@ export class FaceDrum {
     this.blinkTex = this.makeTex(this.blinkCanvas);
 
     const geo = blobGeometry(head, {
-      widthSegments: 56,
-      heightSegments: 44,
+      widthSegments: 48,
+      heightSegments: 38,
       phiStart: Math.PI / 2 - 1.35,
       phiLength: 2.7,
       thetaStart: Math.PI / 2 - 1.2,

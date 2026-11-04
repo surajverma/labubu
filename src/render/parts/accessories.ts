@@ -249,7 +249,7 @@ export const ACCESSORIES: Record<string, Builder> = {
     g.rotation.z = -0.35;
     stick(c, g, 0.3, 0.014, c.kit.plastic('#ff8fc7', 0.3));
     c.mesh(new THREE.TorusGeometry(0.07, 0.014, 8, 24), c.kit.plastic('#ff8fc7', 0.3), g).position.y = 0.33;
-    const bub = c.kit.own(new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0, transmission: 0.95, iridescence: 1, iridescenceIOR: 1.3, transparent: true, opacity: 0.6, depthWrite: false }));
+    const bub = c.kit.own(new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0, iridescence: 1, iridescenceIOR: 1.3, transparent: true, opacity: 0.35, clearcoat: 1, depthWrite: false }));
     for (let i = 0; i < 4; i++) {
       const b = c.mesh(new THREE.SphereGeometry(0.05 + i * 0.015, 18, 12), bub, g);
       b.position.set(0.12 + i * 0.12, 0.45 + i * 0.14, -0.05 * i);

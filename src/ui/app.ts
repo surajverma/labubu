@@ -106,6 +106,32 @@ export class App {
     }
     this.go('home');
     if (isNative) void SplashScreen.hide({ fadeOutDuration: 250 }).catch(() => {});
+    if (!this.game.save.settings.detectedQuality && !navigator.webdriver) this.benchmark();
+  }
+
+  /**
+   * First-launch quality pick: watch ~90 frames of Home after a warm-up and choose
+   * High/Medium/Low from the average frame time. Only runs once (saved in settings).
+   */
+  private benchmark(): void {
+    const times: number[] = [];
+    let warm = 0;
+    const off = this.stage.onFrame((dt) => {
+      if (warm < 0.8) {
+        warm += dt;
+        return;
+      }
+      times.push(dt);
+      if (times.length < 90) return;
+      off();
+      times.sort((a, b) => a - b);
+      const median = times[Math.floor(times.length / 2)]!;
+      const q = median < 0.021 ? 'high' : median < 0.03 ? 'medium' : 'low';
+      const s = this.game.save.settings;
+      s.detectedQuality = q;
+      this.game.changed('settings');
+      if (s.quality === 'auto' && q !== 'high') this.applySettings();
+    });
   }
 
   applySettings(): void {
@@ -115,6 +141,7 @@ export class App {
     setHapticsEnabled(s.haptics);
     const q: Quality = s.quality === 'auto' ? (s.detectedQuality ?? 'high') : s.quality;
     this.stage.setQuality(q);
+    document.body.classList.toggle('reduce-motion', s.reducedMotion);
   }
 
   get quality(): Quality {

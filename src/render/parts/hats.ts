@@ -7,7 +7,7 @@ type Builder = (c: BuildCtx) => void;
 /** A shell that follows the head's shape (for fitted hats and hoods). */
 function headShell(c: BuildCtx, scale: number, o: BlobOptions): THREE.BufferGeometry {
   const p = c.head.params;
-  return blobGeometry({ ...p, rx: p.rx * scale, ry: p.ry * scale, rz: p.rz * scale }, { widthSegments: 56, heightSegments: 40, ...o });
+  return blobGeometry({ ...p, rx: p.rx * scale, ry: p.ry * scale, rz: p.rz * scale }, { widthSegments: 48, heightSegments: 32, ...o });
 }
 
 /** Group placed at the top of the head, tilted slightly back. */

@@ -782,3 +782,9 @@ input.text:focus {
     animation: none;
   }
 }
+body.reduce-motion .screen,
+body.reduce-motion .reveal,
+body.reduce-motion .sheet,
+body.reduce-motion .toast {
+  animation-duration: 0.01s;
+}

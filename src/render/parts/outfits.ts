@@ -6,7 +6,7 @@ type Builder = (c: BuildCtx) => void;
 
 function bodyShell(c: BuildCtx, scale: number, o: BlobOptions, extra: Partial<BlobParams> = {}): THREE.BufferGeometry {
   const p = c.body.params;
-  return blobGeometry({ ...p, ...extra, rx: p.rx * scale, ry: p.ry * scale, rz: p.rz * scale }, { widthSegments: 56, heightSegments: 40, ...o });
+  return blobGeometry({ ...p, ...extra, rx: p.rx * scale, ry: p.ry * scale, rz: p.rz * scale }, { widthSegments: 48, heightSegments: 32, ...o });
 }
 
 function shell(c: BuildCtx, mat: THREE.Material, t0: number, t1: number, scale = 1.035, extra: Partial<BlobParams> = {}, phi?: [number, number]): THREE.Mesh {

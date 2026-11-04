@@ -43,8 +43,10 @@ export class MaterialKit {
           m.metalness = 0.25;
           m.clearcoat = 1;
           m.clearcoatRoughness = 0.05;
-          m.normalMap = this.glitterNormal();
-          m.normalScale = new THREE.Vector2(0.35, 0.35);
+          if (this.quality !== 'low') {
+            m.normalMap = this.glitterNormal();
+            m.normalScale = new THREE.Vector2(0.35, 0.35);
+          }
           break;
         case 'metallic':
           m.roughness = 0.22;
@@ -106,15 +108,17 @@ export class MaterialKit {
 
   glass(tint = '#dff4ff'): THREE.MeshPhysicalMaterial {
     return this.get(`glass:${tint}`, () => {
+      // No `transmission`: it makes three.js re-render the whole scene into an extra
+      // buffer (double triangles, slow on phones). Clearcoated transparency reads as glass.
       return new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(tint),
-        roughness: 0.05,
-        transmission: this.quality === 'low' ? 0 : 0.9,
+        roughness: 0.04,
+        metalness: 0.1,
         transparent: true,
-        opacity: this.quality === 'low' ? 0.35 : 1,
-        thickness: 0.05,
-        ior: 1.3,
+        opacity: 0.28,
         clearcoat: 1,
+        clearcoatRoughness: 0.02,
+        specularIntensity: 1,
         depthWrite: false,
       });
     }) as THREE.MeshPhysicalMaterial;

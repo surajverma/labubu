@@ -10,9 +10,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 3. Generator | done — `docs/screens/m3-contact-sheet.png`, `m3-parts-*.png` |
 | 4. Spin + blind box + rarity, haptics, sounds | done — `docs/screens/m4-*.png` |
 | 5. Collection, sets, save, export/import, settings | done — smoke test `npm run build && npm run smoke` |
+| 6. Phase 1 polish, icon/splash, README, v0.1.0 | done — perf check `node scripts/perf.mjs` |
 
 ## Next
-- Milestone 6: Phase 1 polish (transitions, performance + quality benchmark, icon/splash, README), tag v0.1.0.
+- Milestone 7: coins, economy (`src/game/economy.ts` + simulation test), recycling, shop.
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
@@ -61,6 +62,12 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   `src/ui/thumbs.ts` — bump when visuals change).
 - Display font: Fredoka (OFL-1.1) via `@fontsource/fredoka`; everything else system font.
 - Sounds are synthesised with WebAudio (no audio files, no licences needed).
+
+- Performance: no `transmission` materials (they force an extra full-scene render pass);
+  glass = clearcoated transparency. First-launch benchmark (median frame time over 90
+  frames on Home) picks Low/Medium/High; skipped under automation (`navigator.webdriver`).
+- Icon/splash are rendered from the 3D mascot: `node scripts/render-art.mjs` (preview on
+  :4173) then `python3 scripts/make-icons.py`. Purple background for contrast.
 
 ## Open problems
 - none
