@@ -70,18 +70,18 @@ export const EARS: Record<string, Builder> = {
   },
 
   pointy: (c) => {
-    // Long sideways elf-like ears.
+    // Short, upswept pixie ears (kept compact and upright on purpose).
     for (const s of [-1, 1] as const) {
-      const a = c.head.anchor(80 * s, 8);
-      const L = earLen(c, 0.42);
+      const a = c.head.anchor(76 * s, 22);
+      const L = earLen(c, 0.3);
       const curve = new THREE.QuadraticBezierCurve3(
         new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(s * L * 0.55, L * 0.05, -0.02),
-        new THREE.Vector3(s * L, L * 0.38, -0.04),
+        new THREE.Vector3(s * L * 0.35, L * 0.45, -0.02),
+        new THREE.Vector3(s * L * 0.55, L, -0.05),
       );
       const g = new THREE.Group();
-      const m = c.mesh(taperedTube(curve, 0.11, 0.02, 24, 14), c.skin, g);
-      m.scale.set(1, 1, 0.55);
+      const m = c.mesh(taperedTube(curve, 0.1, 0.02, 24, 14), c.skin, g);
+      m.scale.set(1, 1, 0.5);
       g.position.copy(a.pos).addScaledVector(a.normal, -0.06);
       c.head.group.add(g);
     }
@@ -144,9 +144,9 @@ export const EARS: Record<string, Builder> = {
   },
 
   unicorn: (c) => {
-    const L = earLen(c, 0.36);
+    const L = earLen(c, 0.46);
     const g = new THREE.Group();
-    const prof = (t: number) => 0.085 * (1 - t) + 0.008;
+    const prof = (t: number) => 0.1 * (1 - t) + 0.008;
     const horn = c.mesh(latheProfile(L, prof, 24, 20), c.kit.plastic('#fff1b8', 0.25), g);
     horn.name = 'horn';
     // Spiral groove: a thin tube wrapping the horn.
@@ -167,16 +167,17 @@ export const EARS: Record<string, Builder> = {
   },
 
   floppy: (c) => {
+    // Droopy puppy ears hanging at the sides, flat face turned to the front.
     for (const s of [-1, 1] as const) {
-      const a = c.head.anchor(78 * s, 25);
+      const a = c.head.anchor(68 * s, 38);
       const g = new THREE.Group();
-      const L = 0.42;
-      const ear = c.mesh(blobGeometry({ rx: 0.14, ry: L / 2, rz: 0.06, egg: -0.2 }, { widthSegments: 24, heightSegments: 18 }), c.skin, g);
-      ear.position.y = -L / 2 + 0.06;
-      const inner = c.mesh(blobGeometry({ rx: 0.09, ry: L * 0.36, rz: 0.03 }, { widthSegments: 16, heightSegments: 12 }), c.skinAlt, g);
-      inner.position.set(0, -L / 2 + 0.06, 0.04 * 1);
-      g.position.copy(a.pos).addScaledVector(a.normal, -0.02);
-      g.rotation.set(0, s * 1.35, s * 0.32);
+      const L = c.spec.mods.shortEars ? 0.3 : 0.44;
+      const ear = c.mesh(blobGeometry({ rx: 0.15, ry: L / 2, rz: 0.065, egg: -0.25 }, { widthSegments: 24, heightSegments: 18 }), c.skin, g);
+      ear.position.y = -L / 2 + 0.05;
+      const inner = c.mesh(blobGeometry({ rx: 0.095, ry: L * 0.36, rz: 0.03 }, { widthSegments: 16, heightSegments: 12 }), c.skinAlt, g);
+      inner.position.set(0, -L / 2 + 0.05, 0.045);
+      g.position.copy(a.pos).add(new THREE.Vector3(s * 0.07, 0, 0));
+      g.rotation.set(0.1, s * 0.55, s * 0.38);
       c.head.group.add(g);
     }
   },
@@ -236,7 +237,7 @@ export const EARS: Record<string, Builder> = {
     for (const s of [-1, 1] as const) {
       const a = c.head.anchor(85 * s, 15);
       const g = new THREE.Group();
-      const fin = c.mesh(blobGeometry({ rx: 0.22, ry: 0.16, rz: 0.035, egg: 0.3 }, { widthSegments: 24, heightSegments: 16 }), c.kit.vinyl(c.spec.palette.skinAlt, 'pearl'), g);
+      const fin = c.mesh(blobGeometry({ rx: 0.22, ry: 0.16, rz: 0.035, egg: 0.3 }, { widthSegments: 24, heightSegments: 16 }), c.kit.vinyl(c.spec.palette.accent, 'glossy'), g);
       fin.position.x = s * 0.15;
       fin.rotation.z = s * 0.4;
       g.position.copy(a.pos).addScaledVector(a.normal, -0.05);
@@ -261,6 +262,7 @@ export const EARS: Record<string, Builder> = {
     const a = c.head.anchor(0, 90);
     g.position.copy(a.pos).addScaledVector(a.normal, -0.03);
     g.rotation.z = -0.15;
+    g.scale.setScalar(1.5);
     c.head.group.add(g);
   },
 
@@ -282,8 +284,8 @@ export const EARS: Record<string, Builder> = {
       const a = c.head.anchor(82 * s, 30);
       const g = new THREE.Group();
       for (let i = 0; i < 3; i++) {
-        const f = c.mesh(blobGeometry({ rx: 0.05, ry: 0.15 - i * 0.03, rz: 0.03, egg: -0.3 }, { widthSegments: 12, heightSegments: 10 }), c.kit.vinyl('#ffffff', 'pearl'), g);
-        f.position.set(s * (0.04 + i * 0.05), 0.08 - i * 0.03, -i * 0.01);
+        const f = c.mesh(blobGeometry({ rx: 0.075, ry: 0.22 - i * 0.04, rz: 0.04, egg: -0.3 }, { widthSegments: 12, heightSegments: 10 }), c.kit.vinyl('#ffffff', 'pearl'), g);
+        f.position.set(s * (0.06 + i * 0.08), 0.12 - i * 0.05, -i * 0.01);
         f.rotation.z = -s * (0.6 + i * 0.25);
       }
       g.position.copy(a.pos).addScaledVector(a.normal, -0.03);

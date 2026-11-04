@@ -140,7 +140,7 @@ export const HATS: Record<string, Builder> = {
       const a = c.head.anchor(Math.sin(ang) * 61, Math.cos(ang) * 62 - 6);
       rimPts.push(a.pos.multiplyScalar(1.1));
     }
-    c.mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rimPts), 60, 0.06, 10), c.kit.fabric(pal.hatAlt), c.head.group);
+    c.mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rimPts), 60, 0.04, 10), mat, c.head.group);
     // Little round hood ears so hoods still look cute.
     for (const s of [-1, 1]) {
       const a = c.head.anchor(45 * s, 52);
@@ -156,6 +156,7 @@ export const HATS: Record<string, Builder> = {
     g.position.copy(a.pos);
     g.lookAt(a.pos.clone().add(a.normal));
     c.head.group.add(g);
+    g.scale.setScalar(1.55);
     const petal = c.kit.vinyl(c.spec.palette.hat, 'glossy');
     for (let i = 0; i < 5; i++) {
       const p = c.mesh(blobGeometry({ rx: 0.085, ry: 0.13, rz: 0.035, egg: 0.2 }, { widthSegments: 16, heightSegments: 12 }), petal, g);
@@ -197,6 +198,7 @@ export const HATS: Record<string, Builder> = {
     const pal = c.spec.palette;
     const g = topGroup(c, 0.06, -0.05);
     g.rotation.z = 0.18;
+    g.scale.setScalar(1.3);
     const tex = stripeTex(c, pal.hat, pal.hatAlt, 7);
     const m = c.kit.own(new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.45, clearcoat: 0.6 }));
     c.mesh(latheProfile(0.48, (t) => 0.22 * (1 - t) + 0.01, 12, 36), m, g);
@@ -250,6 +252,7 @@ export const HATS: Record<string, Builder> = {
     g.position.copy(a.pos);
     g.lookAt(a.pos.clone().add(a.normal));
     g.rotateZ(0.3);
+    g.scale.setScalar(1.5);
     c.head.group.add(g);
     const m = c.kit.vinyl(pal.hat, 'glossy');
     for (const s of [-1, 1]) {

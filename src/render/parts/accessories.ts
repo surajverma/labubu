@@ -70,6 +70,7 @@ export const ACCESSORIES: Record<string, Builder> = {
   wand: (c) => {
     const g = inHand(c);
     g.rotation.z = -0.4;
+    g.scale.setScalar(1.4);
     stick(c, g, 0.42, 0.016, c.kit.plastic('#fdf6ff', 0.3));
     const star = new THREE.Shape();
     for (let i = 0; i < 10; i++) {
@@ -87,6 +88,7 @@ export const ACCESSORIES: Record<string, Builder> = {
   lollipop: (c) => {
     const g = inHand(c);
     g.rotation.z = -0.2;
+    g.scale.setScalar(1.4);
     stick(c, g, 0.36, 0.014, c.kit.plastic('#ffffff', 0.5));
     const cv = document.createElement('canvas');
     cv.width = cv.height = 128;
@@ -113,8 +115,9 @@ export const ACCESSORIES: Record<string, Builder> = {
 
   umbrella: (c) => {
     const g = inHand(c);
-    g.rotation.z = 0.15;
-    stick(c, g, 0.95, 0.016, c.kit.plastic('#4b3a33', 0.4));
+    g.rotation.z = 0.32;
+    g.rotation.x = -0.15;
+    stick(c, g, 1.85, 0.016, c.kit.plastic('#4b3a33', 0.4));
     const canopy = latheProfile(0.26, (t) => 0.62 * Math.cos((t * Math.PI) / 2) + 0.01, 12, 8);
     const pos = canopy.getAttribute('position') as THREE.BufferAttribute;
     for (let i = 0; i < pos.count; i++) {
@@ -129,17 +132,18 @@ export const ACCESSORIES: Record<string, Builder> = {
     const mat = c.kit.plastic(c.spec.palette.accent, 0.3);
     mat.side = THREE.DoubleSide;
     const cm = c.mesh(canopy, mat, g);
-    cm.position.y = 0.88;
-    c.mesh(new THREE.SphereGeometry(0.03, 10, 8), mat, g).position.y = 1.15;
+    cm.position.y = 1.76;
+    c.mesh(new THREE.SphereGeometry(0.03, 10, 8), mat, g).position.y = 2.03;
     const hook = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, -0.05, 0), new THREE.Vector3(0, -0.15, 0), new THREE.Vector3(0.08, -0.12, 0));
     c.mesh(taperedTube(hook, 0.016, 0.016, 10, 6, false), c.kit.plastic('#4b3a33', 0.4), g);
   },
 
   bowtie: (c) => {
     const pal = c.spec.palette;
-    const a = c.body.anchor(0, 70);
+    const a = c.body.anchor(0, 48);
     const g = new THREE.Group();
-    g.position.copy(a.pos).addScaledVector(a.normal, 0.04);
+    g.position.copy(a.pos).addScaledVector(a.normal, 0.05);
+    g.scale.setScalar(1.3);
     c.body.group.add(g);
     for (const s of [-1, 1]) {
       const lobe = c.mesh(new THREE.ConeGeometry(0.075, 0.13, 4), c.kit.fabric(pal.accent), g);

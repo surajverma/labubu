@@ -103,7 +103,7 @@ function shinyEye(c: Ctx, x: number, y: number, r: number, k: FaceInk, irisFrac 
 }
 
 const EYES: Record<string, Drawer> = {
-  dots: (c, k, o) => both((_, x) => (o.blink ? closedArc(c, x, EYE_Y, 0.07, false, k) : (circle(c, x, EYE_Y, 0.065), fill(c, k.ink), highlight(c, x - 0.02, EYE_Y - 0.025, 0.018)))),
+  dots: (c, k, o) => both((_, x) => (o.blink ? closedArc(c, x, EYE_Y, 0.07, false, k) : (circle(c, x, EYE_Y, 0.082), fill(c, k.ink), highlight(c, x - 0.026, EYE_Y - 0.03, 0.024)))),
   shiny: (c, k, o) => both((_, x) => (o.blink ? closedArc(c, x, EYE_Y + 0.02, 0.12, false, k) : shinyEye(c, x, EYE_Y, 0.13, k, 0.75))),
   sleepy: (c, k) =>
     both((s, x) => {
@@ -296,7 +296,7 @@ const EYES: Record<string, Drawer> = {
   beady: (c, k, o) =>
     both((_, x) => {
       if (o.blink) return closedArc(c, x * 0.8, EYE_Y, 0.06, false, k);
-      circle(c, x * 0.8, EYE_Y, 0.045);
+      circle(c, x * 0.8, EYE_Y, 0.055);
       fill(c, k.ink);
       highlight(c, x * 0.8 - 0.012, EYE_Y - 0.014, 0.012);
     }),

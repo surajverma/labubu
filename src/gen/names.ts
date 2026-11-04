@@ -1,0 +1,26 @@
+import type { Rng } from '../rng';
+
+const FIRST = ['Mo', 'Pi', 'Bo', 'Lu', 'Ki', 'Nu', 'To', 'Fi', 'Zu', 'Ri', 'Ba', 'Do', 'Mi', 'Pu', 'Gu', 'Te', 'Wa', 'Yo', 'Chi', 'Bi', 'Ko', 'Ta', 'Su', 'Ni', 'Ju', 'Po', 'Ve', 'Hu', 'Ja', 'Sa'];
+const SECOND = ['mo', 'pi', 'ko', 'bu', 'ni', 'ri', 'fu', 'zzy', 'po', 'li', 'bean', 'to', 'kki', 'mi', 'ru', 'chu', 'nu', 'bo', 'la', 'ppy', 'nko', 'mble', 'shi', 'doo', 'ffle', 'nut', 'pop', 'boo', 'tty', 'lo'];
+
+const MOOD_WORDS: Record<string, string> = {
+  happy: 'Sunny', sleepy: 'Sleepy', cheeky: 'Cheeky', cool: 'Cool', shy: 'Shy', angry: 'Grumpy',
+  surprised: 'Wow', silly: 'Silly', love: 'Lovey', sad: 'Teary', sparkly: 'Sparkly', calm: 'Chill',
+  cute: 'Sweet', spooky: 'Spooky', magic: 'Magic', cozy: 'Cozy',
+};
+const THEME_WORDS: Record<string, string> = {
+  space: 'Cosmo', pirate: 'Captain', snow: 'Frosty', beach: 'Sandy', royal: 'Royal', ocean: 'Splashy',
+  nature: 'Leafy', food: 'Snacky', sweet: 'Sugar', party: 'Party', hero: 'Hero', sporty: 'Sporty',
+  fancy: 'Fancy', sky: 'Cloudy', music: 'Groovy', robot: 'Robo', retro: 'Retro', school: 'Smarty',
+};
+
+export function makeName(rng: Rng, moodTags: string[], themeTags: string[]): string {
+  const a = FIRST[Math.floor(rng() * FIRST.length)]!;
+  const b = SECOND[Math.floor(rng() * SECOND.length)]!;
+  const base = a + b;
+  const theme = themeTags.find((t) => THEME_WORDS[t]);
+  const mood = moodTags.find((t) => MOOD_WORDS[t]);
+  const useTheme = theme && rng() < 0.55;
+  const word = useTheme ? THEME_WORDS[theme!] : mood ? MOOD_WORDS[mood] : undefined;
+  return word ? `${word} ${base}` : base;
+}

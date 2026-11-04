@@ -163,7 +163,7 @@ export class Stage {
       this.backdrop.dispose();
     }
     this.backdrop = b;
-    this.skyTex?.dispose();
+    if (this.skyTex) this.skyTex.dispose();
     this.skyTex = null;
     if (!b) {
       this.scene.background = new THREE.Color('#fff4ec');
@@ -171,22 +171,30 @@ export class Stage {
       return;
     }
     this.world.add(b.group);
-    const cv = document.createElement('canvas');
-    cv.width = 4;
-    cv.height = 256;
-    const ctx = cv.getContext('2d')!;
-    const g = ctx.createLinearGradient(0, 0, 0, 256);
-    g.addColorStop(0, b.skyTop);
-    g.addColorStop(1, b.skyBottom);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 4, 256);
-    this.skyTex = new THREE.CanvasTexture(cv);
-    this.skyTex.colorSpace = THREE.SRGBColorSpace;
-    this.scene.background = this.skyTex;
-    this.scene.fog = b.fog ? new THREE.Fog(b.fog.color, b.fog.near, b.fog.far) : null;
+    this.applyBackdropLook(b);
+  }
+
+  /** Sky gradient, fog and light tints for a backdrop. */
+  private applyBackdropLook(b: Backdrop, makeSky = true): void {
+    if (makeSky) {
+      const cv = document.createElement('canvas');
+      cv.width = 4;
+      cv.height = 256;
+      const ctx = cv.getContext('2d')!;
+      const g = ctx.createLinearGradient(0, 0, 0, 256);
+      g.addColorStop(0, b.skyTop);
+      g.addColorStop(1, b.skyBottom);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 4, 256);
+      const tex = new THREE.CanvasTexture(cv);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      this.scene.background = tex;
+      if (b === this.backdrop) this.skyTex = tex;
+      this.scene.fog = b.fog ? new THREE.Fog(b.fog.color, b.fog.near, b.fog.far) : null;
+    }
     const L = b.light ?? {};
     this.hemi.color.set(L.hemiSky ?? '#ffffff');
-    this.hemi.groundColor.set(L.hemiGround ?? '#e6c9b8');
+    this.hemi.groundColor.set(L.hemiGround ?? '#d9b8a8');
     this.hemi.intensity = (L.ambient ?? 1.1) * 0.78;
     this.key.color.set(L.key ?? '#fff3e6');
     this.key.intensity = (L.keyIntensity ?? 2.1) * 1.15;
@@ -337,6 +345,59 @@ export class Stage {
     };
     el.addEventListener('pointerup', end);
     el.addEventListener('pointercancel', end);
+  }
+
+  /**
+   * Temporarily swaps in other content (for thumbnails/share cards), runs `fn`, then
+   * restores everything. Nothing is shown on screen because it all happens in one task.
+   */
+  withContent<T>(backdrop: Backdrop | null, subject: THREE.Object3D, framing: [number, number, number, number], fn: () => T): T {
+    const prevBackdrop = this.backdrop;
+    const prevChildren = [...this.turntable.children];
+    const prevFrame: [number, number, number, number] = [this.frameHeight, this.frameWidth, this.aimY, this.yShift];
+    const prevRot = this.turntable.rotation.y;
+    const prevZoom = this.zoom;
+    const prevBloom = this.bloomOn;
+    const prevBg = this.scene.background;
+    const prevFog = this.scene.fog;
+    prevChildren.forEach((c) => this.turntable.remove(c));
+    if (prevBackdrop) this.world.remove(prevBackdrop.group);
+    this.backdrop = null;
+    this.bloomOn = false;
+    if (backdrop) this.applyBackdropLook(backdrop);
+    else {
+      this.scene.background = new THREE.Color('#fff4ec');
+      this.scene.fog = null;
+    }
+    if (backdrop) this.world.add(backdrop.group);
+    this.turntable.add(subject);
+    this.turntable.rotation.y = 0;
+    this.zoom = 1;
+    this.frameHeight = framing[0];
+    this.frameWidth = framing[1];
+    this.aimY = framing[2];
+    this.yShift = framing[3];
+    try {
+      return fn();
+    } finally {
+      this.turntable.remove(subject);
+      if (backdrop) this.world.remove(backdrop.group);
+      const tmpBg = this.scene.background;
+      if (tmpBg instanceof THREE.Texture && tmpBg !== prevBg) tmpBg.dispose();
+      prevChildren.forEach((c) => this.turntable.add(c));
+      this.backdrop = prevBackdrop;
+      if (prevBackdrop) {
+        this.world.add(prevBackdrop.group);
+        this.applyBackdropLook(prevBackdrop, false);
+      }
+      this.scene.background = prevBg;
+      this.scene.fog = prevFog;
+      this.turntable.rotation.y = prevRot;
+      this.zoom = prevZoom;
+      this.bloomOn = prevBloom;
+      [this.frameHeight, this.frameWidth, this.aimY, this.yShift] = prevFrame;
+      this.applyFraming();
+    }
   }
 
   /**

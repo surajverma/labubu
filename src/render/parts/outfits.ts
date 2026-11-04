@@ -310,7 +310,7 @@ export const OUTFITS: Record<string, Builder> = {
     const top = bodyY(c, 0.1);
     const h = top - 0.08;
     const rT = bodyR(c, 0.12) * 1.05;
-    const g = new THREE.CylinderGeometry(rT, rT * 1.9, h, 36, 8, true, Math.PI * 0.6, Math.PI * 0.8);
+    const g = new THREE.CylinderGeometry(rT, rT * 2.1, h, 36, 8, true, Math.PI * 0.45, Math.PI * 1.1);
     const pos = g.getAttribute('position') as THREE.BufferAttribute;
     for (let i = 0; i < pos.count; i++) {
       const y = pos.getY(i);
@@ -323,8 +323,17 @@ export const OUTFITS: Record<string, Builder> = {
     cape.rotation.y = Math.PI;
     cape.scale.z = 0.85;
     hem(c, c.kit.fabric(pal.outfitAlt), 0.1, 0.045);
-    const clasp = c.mesh(new THREE.SphereGeometry(0.05, 12, 8), c.kit.metal('#f2c14e'), c.body.group);
-    clasp.position.copy(c.body.anchor(0, 78).pos).multiplyScalar(1.06);
+    // Hero badge on the chest so the cape reads from the front.
+    const badgeAt = c.body.anchor(0, 22);
+    const badge = c.mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.03, 5), c.kit.plastic(pal.outfitAlt, 0.3), c.body.group);
+    badge.position.copy(badgeAt.pos).addScaledVector(badgeAt.normal, 0.02);
+    badge.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), badgeAt.normal);
+    const star = c.mesh(new THREE.OctahedronGeometry(0.05, 0), c.kit.metal('#f2c14e'), c.body.group);
+    star.position.copy(badgeAt.pos).addScaledVector(badgeAt.normal, 0.05);
+    for (const s of [-1, 1]) {
+      const clasp = c.mesh(new THREE.SphereGeometry(0.045, 12, 8), c.kit.metal('#f2c14e'), c.body.group);
+      clasp.position.copy(c.body.anchor(s * 40, 62).pos).multiplyScalar(1.06);
+    }
   },
 
   sailor: (c) => {
