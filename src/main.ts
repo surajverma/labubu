@@ -9,6 +9,7 @@ import { SETS, setProgress } from './game/sets';
 import { specFor } from './game/game';
 import { sfx } from './audio/sfx';
 import { haptic } from './platform';
+import './ui/features/economyUi';
 
 async function boot(): Promise<void> {
   const params = new URLSearchParams(location.search);
@@ -33,9 +34,10 @@ async function boot(): Promise<void> {
       if (set.since > g.contentVersion || g.save.badges.includes(set.id)) continue;
       if (setProgress(set, specs).done) {
         g.save.badges.push(set.id);
+        g.addCoins(set.coins, 'set');
         if (reason !== 'import') {
           setTimeout(() => {
-            app.toast(`${set.icon} Set complete: ${set.name}!`);
+            app.toast(`${set.icon} Set complete: ${set.name}! +${set.coins} coins`);
             sfx.fanfare('epic');
             haptic.success();
           }, 1800);

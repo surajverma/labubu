@@ -1,6 +1,6 @@
 /** Save data. Characters are stored as seeds + metadata, never as images. */
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export interface OwnedCharacter {
   /** Unique id of this collection entry. */
@@ -47,13 +47,74 @@ export interface SaveData {
     boxesOpened: number;
     spins: number;
     secretsFound: number;
+    // v2
+    coinsEarned: number;
+    recycled: number;
+    ordersPlayed: number;
+    ordersThreeStar: number;
+    dailyOrdersPlayed: number;
+    maxStreak: number;
+    boxesBought: number;
+    gifted: number;
+    giftsReceived: number;
   };
+  // --- v2 (Phase 2) ---
+  coins: number;
+  /** Premium boxes waiting to be opened (from streak rewards). */
+  premiumBoxes: number;
+  daily: DailyState;
+  orders: OrdersState;
+  /** Earned achievement ids. */
+  achievements: string[];
+  /** Gift ids already redeemed on this device (Phase 3). */
+  redeemedGifts: string[];
   /** Earned set badges (set ids). */
   badges: string[];
   /** Dev menu unlocked. */
   dev: boolean;
   /** Things seen once (tutorials, permission prompts). */
   seen: string[];
+}
+
+export interface DailyState {
+  /** Local date (YYYY-MM-DD) of the last claimed daily box. */
+  lastClaimDay: string | null;
+  streak: number;
+  /** ISO week id (YYYY-Www) in which the automatic streak freeze was used. */
+  freezeUsedWeek: string | null;
+  /** Highest wall-clock time ever seen (clock-change guard). */
+  maxSeenTime: number;
+  /** Day of the last login-coin grant. */
+  lastLoginDay: string | null;
+}
+
+export interface OrdersState {
+  /** Best stars per level id. */
+  best: Record<string, number>;
+  /** Daily order results by date. */
+  daily: Record<string, { stars: number; score: number }>;
+  tutorialDone: boolean;
+}
+
+export function defaultDaily(): DailyState {
+  return { lastClaimDay: null, streak: 0, freezeUsedWeek: null, maxSeenTime: 0, lastLoginDay: null };
+}
+
+export function defaultStats(): SaveData['stats'] {
+  return {
+    boxesOpened: 0,
+    spins: 0,
+    secretsFound: 0,
+    coinsEarned: 0,
+    recycled: 0,
+    ordersPlayed: 0,
+    ordersThreeStar: 0,
+    dailyOrdersPlayed: 0,
+    maxStreak: 0,
+    boxesBought: 0,
+    gifted: 0,
+    giftsReceived: 0,
+  };
 }
 
 export function defaultSettings(): Settings {
@@ -76,9 +137,15 @@ export function newSave(now = Date.now()): SaveData {
     boxes: 10,
     collection: [],
     settings: defaultSettings(),
-    stats: { boxesOpened: 0, spins: 0, secretsFound: 0 },
+    stats: defaultStats(),
     badges: [],
     dev: false,
     seen: [],
+    coins: 0,
+    premiumBoxes: 0,
+    daily: defaultDaily(),
+    orders: { best: {}, daily: {}, tutorialDone: false },
+    achievements: [],
+    redeemedGifts: [],
   };
 }

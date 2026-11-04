@@ -104,6 +104,31 @@ export class CollectionScreen implements Screen {
       this.body.append(h('div', { class: 'empty' }, h('p', null, 'No buddies match this filter yet.')));
       return;
     }
+    const dupes = this.app.game.duplicatesValue();
+    if (dupes.copies > 0 && f === 'all') {
+      this.body.append(
+        h(
+          'div',
+          { class: 'card row', style: 'margin-bottom:12px;padding:10px 14px' },
+          h('div', { style: 'flex:1;font-weight:600' }, `${dupes.copies} duplicate${dupes.copies > 1 ? 's' : ''}`, h('div', { class: 'muted', style: 'font-size:13px;font-weight:500' }, 'Keeps one of each. Secrets are never recycled.')),
+          h(
+            'button',
+            {
+              class: 'btn small',
+              onclick: async () => {
+                const ok = await this.app.confirm('Recycle duplicates?', `You keep one of every buddy and get ${dupes.coins} coins for the ${dupes.copies} extra copies.`, `Recycle for ${dupes.coins}`);
+                if (!ok) return;
+                const got = this.app.game.recycleAllDuplicates();
+                this.app.toast(`+${got} coins`);
+                this.render();
+              },
+            },
+            icon('coin', 18),
+            `+${dupes.coins}`,
+          ),
+        ),
+      );
+    }
     const grid = h('div', { class: 'grid' });
     this.observer = new IntersectionObserver(
       (entries) => {

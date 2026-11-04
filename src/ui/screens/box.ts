@@ -4,6 +4,9 @@ import { RARITY_INFO, RARITY_ODDS, rarityRank } from '../../gen/rarity';
 import { RARITIES, type CharacterSpec } from '../../gen/types';
 import { displayName } from '../../game/game';
 import { getPool, latestSeries, type BoxKind } from '../../game/series';
+import { ECONOMY } from '../../game/economy';
+import { weeklyTheme } from '../../game/themes';
+import { dayKey } from '../../game/time';
 import { haptic } from '../../platform';
 import { BlindBox } from '../../render/box';
 import { buildCharacter, type CharacterRig } from '../../render/character';
@@ -38,7 +41,7 @@ export class BoxScreen implements Screen {
   private beamFx: ReturnType<typeof beam> | null = null;
   private kind: BoxKind = 'normal';
   private beamFade = -1;
-  private opts: { tag?: string; variant?: string } = {};
+  private opts: { tag?: string; variant?: string; paid?: boolean } = {};
 
   constructor(private app: App) {
     this.skipLayer = h('div', { class: 'passthrough', style: 'position:absolute;inset:0;display:none;pointer-events:auto', onclick: () => this.skip() });
@@ -47,7 +50,7 @@ export class BoxScreen implements Screen {
 
   enter(params?: Record<string, unknown>): void {
     this.kind = (params?.kind as BoxKind) ?? 'normal';
-    this.opts = { tag: params?.tag as string | undefined, variant: params?.variant as string | undefined };
+    this.opts = { tag: params?.tag as string | undefined, variant: params?.variant as string | undefined, paid: Boolean(params?.paid) };
     const st = this.app.stage;
     st.setBackdrop(buildBackdrop('boxroom'));
     st.setBloom(false);
@@ -87,7 +90,8 @@ export class BoxScreen implements Screen {
   }
 
   private renderTop(title: string): void {
-    this.top.replaceChildren(h('h1', null, title), counter('boxes', this.app.game.save.boxes));
+    const s = this.app.game.save;
+    this.top.replaceChildren(h('h1', null, title), counter('coins', s.coins, () => this.showShop()), counter('boxes', s.boxes));
   }
 
   private showIdle(): void {
@@ -110,13 +114,73 @@ export class BoxScreen implements Screen {
       h('div', { class: 'sub' }, h('span', { class: 'chip light' }, `${found} / ${pool.series.size} found`)),
     );
     const n = g.save.boxes;
-    const paid = this.kind !== 'normal';
+    const special = this.kind !== 'normal';
+    const prem = g.save.premiumBoxes;
     this.bottom.replaceChildren(
-      paid || n > 0
-        ? h('button', { class: 'btn', style: 'min-width:240px', onclick: () => this.open() }, icon('gift', 24), paid ? 'Open it!' : 'Open a box')
-        : h('div', { class: 'hint' }, 'No boxes left — come back tomorrow for a free one!'),
-      h('button', { class: 'btn ghost small', onclick: () => this.showOdds() }, 'What’s inside? (odds)'),
+      special
+        ? h('button', { class: 'btn', style: 'min-width:240px', onclick: () => this.open() }, icon('gift', 24), 'Open it!')
+        : n > 0
+          ? h('button', { class: 'btn', style: 'min-width:240px', onclick: () => this.open() }, icon('gift', 24), `Open a box (${n})`)
+          : h('div', { class: 'hint' }, 'No boxes left — get more in the shop or come back tomorrow!'),
+      h(
+        'div',
+        { class: 'row' },
+        !special && prem > 0 ? h('button', { class: 'btn purple small', onclick: () => this.startKind('premium', {}) }, `Premium (${prem})`) : null,
+        h('button', { class: 'btn ghost small', onclick: () => this.showShop() }, icon('shop', 20), 'Shop'),
+        h('button', { class: 'btn ghost small', onclick: () => this.showOdds() }, 'Odds'),
+      ),
     );
+  }
+
+  /** Switch the waiting box to another kind (premium from the pile, or a paid box). */
+  private startKind(kind: BoxKind, opts: { tag?: string; paid?: boolean }): void {
+    this.app.tap();
+    this.kind = kind;
+    this.opts = { ...opts };
+    this.showIdle();
+  }
+
+  private showShop(): void {
+    this.app.tap();
+    const g = this.app.game;
+    const theme = weeklyTheme(dayKey(Date.now()));
+    const item = (title: string, desc: string, price: number, color: string, onBuy: () => void) =>
+      h(
+        'div',
+        { class: 'card row', style: 'margin-bottom:10px' },
+        h('div', { style: `width:52px;height:52px;border-radius:16px;background:${color};display:grid;place-items:center;color:#fff;flex:none` }, icon('gift', 28)),
+        h('div', { style: 'flex:1' }, h('div', { style: 'font-family:var(--display);font-weight:700;font-size:18px' }, title), h('div', { class: 'muted', style: 'font-size:13px' }, desc)),
+        h('button', { class: 'btn small', disabled: g.save.coins < price, onclick: onBuy, 'aria-label': `Buy ${title} for ${price} coins` }, icon('coin', 18), String(price)),
+      );
+    const close = this.app.sheet([
+      h('h3', null, 'Box shop'),
+      h('p', { class: 'muted', style: 'margin-top:-6px' }, `You have ${g.save.coins} coins. Coins are earned by playing — never bought.`),
+      item('Blind box', 'One random buddy. Goes to your box pile.', ECONOMY.shop.box, '#ff8a6b', () => {
+        if (!g.buy('normal')) return;
+        sfx.coin();
+        close();
+        this.app.toast('+1 box');
+        this.showIdle();
+      }),
+      item(`${theme.icon} ${theme.name} box`, `Always contains a buddy with ${theme.tag} things.`, ECONOMY.shop.themed, '#3fb6a8', () => {
+        if (!g.buy('themed')) return;
+        sfx.coin();
+        close();
+        this.kind = 'themed';
+        this.opts = { tag: theme.tag, paid: true };
+        this.showIdle();
+        setTimeout(() => this.open(), 300);
+      }),
+      item('Premium box', 'No Commons — Rare or better!', ECONOMY.shop.premium, '#8a6bff', () => {
+        if (!g.buy('premium')) return;
+        sfx.coin();
+        close();
+        this.kind = 'premium';
+        this.opts = { paid: true };
+        this.showIdle();
+        setTimeout(() => this.open(), 300);
+      }),
+    ]);
   }
 
   private open(): void {
@@ -126,6 +190,7 @@ export class BoxScreen implements Screen {
     const r = g.openBox(this.kind, cryptoRng, this.opts);
     if (!r) return;
     this.kind = 'normal';
+    this.opts = {};
     this.result = r;
     this.phase = 'shaking';
     this.t = 0;

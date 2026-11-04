@@ -1,4 +1,4 @@
-import { SAVE_VERSION, newSave, defaultSettings, type SaveData } from './schema';
+import { SAVE_VERSION, newSave, defaultSettings, defaultDaily, defaultStats, type SaveData } from './schema';
 
 /**
  * Migrations from saveVersion N to N+1. Each takes the raw object of version N and returns
@@ -8,6 +8,18 @@ type Raw = Record<string, unknown> & { saveVersion?: number };
 export const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
   // 0 → 1: pre-release saves without a version (only used by early dev builds).
   0: (s) => ({ ...newSave(), ...s, saveVersion: 1 }),
+  // 1 → 2 (Phase 2): coins, premium boxes, daily streaks, orders, achievements.
+  1: (s) => ({
+    ...s,
+    saveVersion: 2,
+    coins: 0,
+    premiumBoxes: 0,
+    daily: defaultDaily(),
+    orders: { best: {}, daily: {}, tutorialDone: false },
+    achievements: [],
+    redeemedGifts: [],
+    stats: { ...defaultStats(), ...(s.stats as object) },
+  }),
 };
 
 export class SaveTooNewError extends Error {}
@@ -32,5 +44,9 @@ export function migrate(input: unknown): SaveData {
   if (!Array.isArray(out.collection)) out.collection = [];
   if (!Array.isArray(out.badges)) out.badges = [];
   if (!Array.isArray(out.seen)) out.seen = [];
+  out.daily = { ...defaultDaily(), ...(s.daily as object) };
+  out.orders = { ...base.orders, ...(s.orders as object) };
+  if (!Array.isArray(out.achievements)) out.achievements = [];
+  if (!Array.isArray(out.redeemedGifts)) out.redeemedGifts = [];
   return out;
 }

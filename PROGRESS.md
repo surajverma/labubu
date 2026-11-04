@@ -11,9 +11,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 4. Spin + blind box + rarity, haptics, sounds | done — `docs/screens/m4-*.png` |
 | 5. Collection, sets, save, export/import, settings | done — smoke test `npm run build && npm run smoke` |
 | 6. Phase 1 polish, icon/splash, README, v0.1.0 | done — perf check `node scripts/perf.mjs` |
+| 7. Coins, economy, recycling, shop | done — `tests/economy.test.ts`, `docs/screens/m7-*.png` |
 
 ## Next
-- Milestone 7: coins, economy (`src/game/economy.ts` + simulation test), recycling, shop.
+- Milestone 8: daily boxes, streaks, notifications, clock guard.
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
@@ -72,6 +73,11 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 - **Tags:** this cloud session cannot push tags (git proxy + API refuse). The workflow
   therefore auto-creates tag `v<package.json version>` + a GitHub Release on the first
   build of a new version. Releasing = bump `version` in `package.json` and push.
+
+- Save v2 (Phase 2 fields: coins, premiumBoxes, daily, orders, achievements, redeemedGifts)
+  with migration 1→2 and a test using a real v1 save.
+- Shop lives in the Boxes tab (sheet). Normal boxes bought go to the pile; Premium/Themed
+  open immediately. Streak Premium boxes go to a separate premium pile.
 
 ## Open problems
 - none

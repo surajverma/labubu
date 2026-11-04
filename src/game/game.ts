@@ -3,6 +3,7 @@ import type { CharacterSpec } from '../gen/types';
 import { loadSave, writeSave } from '../save/storage';
 import { newSave, type OwnedCharacter, type SaveData } from '../save/schema';
 import { drawBox, type BoxKind, type Draw } from './series';
+import { ECONOMY, recycleValue } from './economy';
 import type { Rng } from '../rng';
 
 export function charKey(c: { seed: string; v: number; variant?: string }): string {
@@ -60,7 +61,7 @@ export class Game {
     for (const h of this.hooks) h(this, reason);
     for (const l of this.listeners) l(reason);
     if (this.saveTimer !== null) clearTimeout(this.saveTimer);
-    this.saveTimer = window.setTimeout(() => this.flush(), 250);
+    this.saveTimer = setTimeout(() => void this.flush(), 250) as unknown as number;
   }
 
   async flush(): Promise<void> {
@@ -118,9 +119,73 @@ export class Game {
     return true;
   }
 
-  openBox(kind: BoxKind, rng: Rng, opts: { tag?: string; variant?: string } = {}): { draw: Draw; owned: OwnedCharacter; isNew: boolean; spec: CharacterSpec } | null {
+  addCoins(n: number, reason: string): void {
+    if (n <= 0) return;
+    this.save.coins += n;
+    this.save.stats.coinsEarned += n;
+    this.changed(`coins:${reason}`);
+  }
+
+  /** Recycle one duplicate copy for coins. Returns coins earned, or null if not allowed. */
+  recycle(uidv: string): number | null {
+    const o = this.find(uidv);
+    if (!o || o.count < 2) return null;
+    const value = recycleValue(specFor(o).rarity);
+    if (value === null) return null;
+    o.count -= 1;
+    this.save.stats.recycled++;
+    this.addCoins(value, 'recycle');
+    return value;
+  }
+
+  /** Coins you would get for recycling every duplicate (keeps one of each). */
+  duplicatesValue(): { coins: number; copies: number } {
+    let coins = 0,
+      copies = 0;
+    for (const o of this.save.collection) {
+      const v = recycleValue(specFor(o).rarity);
+      if (v === null || o.count < 2) continue;
+      coins += v * (o.count - 1);
+      copies += o.count - 1;
+    }
+    return { coins, copies };
+  }
+
+  recycleAllDuplicates(): number {
+    let total = 0;
+    for (const o of this.save.collection) {
+      const v = recycleValue(specFor(o).rarity);
+      if (v === null) continue;
+      while (o.count > 1) {
+        o.count--;
+        this.save.stats.recycled++;
+        total += v;
+      }
+    }
+    this.addCoins(total, 'recycle');
+    return total;
+  }
+
+  /** Buys from the shop. Normal boxes go to your box pile; others are opened right away. */
+  buy(kind: BoxKind): boolean {
+    const price = kind === 'normal' ? ECONOMY.shop.box : kind === 'premium' ? ECONOMY.shop.premium : ECONOMY.shop.themed;
+    if (this.save.coins < price) return false;
+    this.save.coins -= price;
+    this.save.stats.boxesBought++;
+    if (kind === 'normal') this.save.boxes += 1;
+    this.changed('buy');
+    return true;
+  }
+
+  /**
+   * Opens a box. Normal boxes use the box pile; premium boxes use the premium pile unless
+   * `paid` (just bought); themed boxes are always bought.
+   */
+  openBox(kind: BoxKind, rng: Rng, opts: { tag?: string; variant?: string; paid?: boolean } = {}): { draw: Draw; owned: OwnedCharacter; isNew: boolean; spec: CharacterSpec } | null {
     if (kind === 'normal' && this.save.boxes <= 0) return null;
+    if (kind === 'premium' && !opts.paid && this.save.premiumBoxes <= 0) return null;
     if (kind === 'normal') this.save.boxes -= 1;
+    if (kind === 'premium' && !opts.paid) this.save.premiumBoxes -= 1;
     const draw = drawBox(kind, rng, opts);
     const { owned, isNew } = this.addCharacter(draw, 'box');
     this.save.stats.boxesOpened++;

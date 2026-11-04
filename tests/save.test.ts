@@ -23,6 +23,29 @@ describe('save migrations', () => {
     expect(m.settings.sound).toBe(false);
     expect(m.settings.haptics).toBe(true);
   });
+  it('migrates a real v1 save to v2 without losing anything', () => {
+    const v1 = {
+      saveVersion: 1,
+      createdAt: 1700000000000,
+      boxes: 2,
+      collection: [{ uid: 'x1', seed: 'K7Q2-MX9A', v: 1, foundAt: 1700000001000, favourite: true, count: 3, source: 'box', series: 1, index: 12 }],
+      homeUid: 'x1',
+      settings: { sound: false, music: true, haptics: true, notifications: true, notifyHour: 18, quality: 'auto', spinMode: 'face', reducedMotion: false },
+      stats: { boxesOpened: 9, spins: 40, secretsFound: 0 },
+      badges: ['cozy-club'],
+      dev: false,
+      seen: [],
+    };
+    const m = migrate(v1);
+    expect(m.saveVersion).toBe(2);
+    expect(m.collection[0]).toEqual(v1.collection[0]);
+    expect(m.badges).toEqual(['cozy-club']);
+    expect(m.stats.boxesOpened).toBe(9);
+    expect(m.stats.recycled).toBe(0);
+    expect(m.coins).toBe(0);
+    expect(m.daily.streak).toBe(0);
+    expect(m.settings.sound).toBe(false);
+  });
   it('refuses saves from a newer app', () => {
     expect(() => migrate({ saveVersion: SAVE_VERSION + 1 })).toThrow(SaveTooNewError);
   });

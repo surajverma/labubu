@@ -27,6 +27,7 @@ export class HomeScreen implements Screen {
   private resetBtn: HTMLElement;
   private stopShake: (() => void) | null = null;
   private spinCount = 0;
+  private hintTimer = 0;
 
   constructor(private app: App) {
     this.view = new CharacterView(app.stage);
@@ -82,10 +83,11 @@ export class HomeScreen implements Screen {
     void requestMotionPermission().then((ok) => {
       if (ok) this.stopShake = watchShake(() => this.spin(1));
     });
-    if (!g.save.collection.length && g.save.boxes > 0) setTimeout(() => this.app.toast('Tap “Boxes” to open your first blind box!'), 600);
+    if (!g.save.collection.length && g.save.boxes > 0) this.hintTimer = window.setTimeout(() => this.app.toast('Tap “Boxes” to open your first blind box!'), 600);
   }
 
   leave(): void {
+    clearTimeout(this.hintTimer);
     this.stopShake?.();
     this.stopShake = null;
     this.app.stage.gestures = {};
@@ -94,7 +96,8 @@ export class HomeScreen implements Screen {
   }
 
   private updateBoxes(): void {
-    this.boxesEl.replaceChildren(counter('boxes', this.app.game.save.boxes, () => this.app.go('box')));
+    const s = this.app.game.save;
+    this.boxesEl.replaceChildren(h('div', { class: 'row', style: 'gap:6px' }, counter('coins', s.coins, () => this.app.go('box')), counter('boxes', s.boxes, () => this.app.go('box'))));
   }
 
   private renderName(name: string, note?: string): void {
