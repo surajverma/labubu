@@ -10,7 +10,7 @@ export const ECONOMY = {
   startingCoins: 0,
 
   /** Coins for opening the app on a new day. */
-  dailyLoginCoins: 60,
+  dailyLoginCoins: 50,
   /** Free boxes per day (more on streak days, see `streakReward`). */
   dailyFreeBoxes: 1,
 
@@ -31,8 +31,8 @@ export const ECONOMY = {
 
   orders: {
     /** Coins = stars × multiplier for the street (1-based). */
-    streetMultiplier: [10, 15, 22],
-    dailyOrderMultiplier: 25,
+    streetMultiplier: [9, 13, 19],
+    dailyOrderMultiplier: 20,
     /** Points per met requirement, and per leftover spin. */
     pointsPerRequirement: 100,
     pointsPerSpare: 15,

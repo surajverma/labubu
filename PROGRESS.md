@@ -15,9 +15,10 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 8. Daily boxes, streaks, notifications, clock guard | done — `tests/daily.test.ts`, `docs/screens/m8-*.png` |
 | 9. Order challenge | done — `tests/orders.test.ts`, `docs/screens/m9-*.png`, tuning `npx vite-node scripts/tune-orders.ts` |
 | 10. Achievements, profile, Phase 2 content, seasons, themed boxes | done — `docs/screens/m10-*.png` |
+| 11. Phase 2 polish + balance, v0.2.0 | done — economy sim incl. sets/achievements ≈ 4.5 boxes/day |
 
 ## Next
-- Milestone 11: Phase 2 polish + balance pass, tag v0.2.0 (bump package.json → CI auto-release).
+- Milestone 12: share card + gift/trade codes (offline).
 
 ## Waiting on the owner
 - **Checkpoint A — signing secrets.** A release keystore was generated in the cloud session
@@ -107,6 +108,11 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   tag rotates every ISO week (`src/game/themes.ts`).
 - 20 achievements (`src/game/achievements.ts`) pay coins once; profile screen from Home
   (person icon) and Settings. Toasts are queued one at a time.
+
+- Balance pass (M11): the simulation now includes set + achievement one-offs. Result
+  ≈ 4.5 boxes/day over 30 days (steady ≈ 4, onboarding burst ≈ 8–10 on days 3–5). Set
+  and achievement coins were scaled ×0.6, login coins 60→50, order multipliers
+  [9,13,19], daily order 20/star.
 
 ## Open problems
 - none

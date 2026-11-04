@@ -16,7 +16,7 @@ export interface SetDef {
   coins: number;
 }
 
-const byTag = (id: string, name: string, icon: string, tag: string, need: number, since: number, desc?: string, coins = 100): SetDef => ({
+const byTag = (id: string, name: string, icon: string, tag: string, need: number, since: number, desc?: string, coins = 60): SetDef => ({
   id,
   name,
   icon,
@@ -32,7 +32,7 @@ function layerValue(s: CharacterSpec, layer: Layer): string {
   return (FACE_LAYERS as readonly string[]).includes(layer) ? s.face[layer as (typeof FACE_LAYERS)[number]] : (s as unknown as Record<string, string>)[layer]!;
 }
 
-const distinct = (id: string, name: string, icon: string, layer: Layer, need: number, since: number, desc: string, coins = 150): SetDef => ({
+const distinct = (id: string, name: string, icon: string, layer: Layer, need: number, since: number, desc: string, coins = 90): SetDef => ({
   id,
   name,
   icon,
@@ -58,7 +58,7 @@ export const SETS: SetDef[] = [
     icon: '🌈',
     since: 1,
     need: RAINBOW.length,
-    coins: 150,
+    coins: 90,
     description: 'Find a red, orange, yellow, green, blue and purple buddy',
     matches: (s) => RAINBOW.some((c) => s.palette.colorTags.includes(c)),
     progress: (specs) => RAINBOW.filter((c) => specs.some((s) => s.palette.colorTags.includes(c))).length,
@@ -70,7 +70,7 @@ export const SETS: SetDef[] = [
     icon: '🪜',
     since: 1,
     need: LADDER.length,
-    coins: 200,
+    coins: 120,
     description: 'Own a Common, Rare, Epic and Legendary buddy',
     matches: (s) => LADDER.includes(s.rarity),
     progress: (specs) => LADDER.filter((r) => specs.some((s) => s.rarity === r)).length,
@@ -79,10 +79,10 @@ export const SETS: SetDef[] = [
   // --- Phase 2 ---
   byTag('snow-squad', 'Snow Squad', '❄️', 'snow', 5, 2, 'Collect 5 snowy buddies'),
   byTag('magic-circle', 'Magic Circle', '🪄', 'magic', 5, 2, 'Collect 5 magical buddies'),
-  byTag('royal-court', 'Royal Court', '👑', 'royal', 3, 2, 'Collect 3 royal buddies', 200),
+  byTag('royal-court', 'Royal Court', '👑', 'royal', 3, 2, 'Collect 3 royal buddies', 120),
   byTag('sweet-tooth', 'Sweet Tooth', '🍭', 'food', 5, 2, 'Collect 5 buddies who love snacks'),
-  distinct('scene-explorer', 'Scene Explorer', '🗺️', 'scene', 10, 2, 'Find buddies in 10 different scenes', 200),
-  distinct('outfit-closet', 'Outfit Closet', '👗', 'outfit', 12, 2, 'Find 12 different outfits', 200),
+  distinct('scene-explorer', 'Scene Explorer', '🗺️', 'scene', 10, 2, 'Find buddies in 10 different scenes', 120),
+  distinct('outfit-closet', 'Outfit Closet', '👗', 'outfit', 12, 2, 'Find 12 different outfits', 120),
   byTag('sparkle-squad', 'Sparkle Squad', '✨', 'sparkly', 5, 2, 'Collect 5 sparkly buddies'),
   {
     id: 'secret-keeper',
@@ -90,7 +90,7 @@ export const SETS: SetDef[] = [
     icon: '🔮',
     since: 2,
     need: 1,
-    coins: 300,
+    coins: 180,
     description: 'Find a Secret buddy',
     matches: (s) => s.rarity === 'secret',
     progress: (specs) => (specs.some((s) => s.rarity === 'secret') ? 1 : 0),

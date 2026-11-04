@@ -9,6 +9,7 @@ import { OrdersScreen } from './ui/screens/orders';
 import { OrderScreen } from './ui/screens/order';
 import { ProfileScreen } from './ui/screens/profile';
 import { newAchievements } from './game/achievements';
+import { dayKey } from './game/time';
 import { SETS, setProgress } from './game/sets';
 import { specFor } from './game/game';
 import { sfx } from './audio/sfx';
@@ -69,6 +70,15 @@ async function boot(): Promise<void> {
       }
     }
   });
+  // Tab badges: boxes waiting, daily order not played yet.
+  const badges = () => {
+    const s = app.game.save;
+    app.tabBadges.box = s.boxes + s.premiumBoxes || undefined;
+    app.tabBadges.play = s.orders.daily[dayKey(Date.now())] ? undefined : 1;
+    app.updateTabs();
+  };
+  app.game.on(badges);
+  app.onForeground.push(badges);
   app.onForeground.push(() => checkDaily(app));
   await app.start();
   (window as unknown as { __app: App; __ready: boolean }).__app = app;

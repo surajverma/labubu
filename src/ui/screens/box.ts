@@ -8,6 +8,7 @@ import { ECONOMY } from '../../game/economy';
 import { weeklyTheme } from '../../game/themes';
 import { dayKey } from '../../game/time';
 import { activeSeason, SEASONAL_BOX_CHANCE, SEASONS } from '../../game/seasons';
+import { nextResetTime } from '../../game/daily';
 import { haptic } from '../../platform';
 import { BlindBox } from '../../render/box';
 import { buildCharacter, type CharacterRig } from '../../render/character';
@@ -124,7 +125,7 @@ export class BoxScreen implements Screen {
         ? h('button', { class: 'btn', style: 'min-width:240px', onclick: () => this.open() }, icon('gift', 24), 'Open it!')
         : n > 0
           ? h('button', { class: 'btn', style: 'min-width:240px', onclick: () => this.open() }, icon('gift', 24), `Open a box (${n})`)
-          : h('div', { class: 'hint' }, 'No boxes left — get more in the shop or come back tomorrow!'),
+          : h('div', { class: 'hint' }, `No boxes left — next free box in ${untilMidnight()}, or visit the shop!`),
       h(
         'div',
         { class: 'row' },
@@ -325,6 +326,13 @@ export class BoxScreen implements Screen {
     this.app.tap();
     this.app.sheet(oddsContent());
   }
+}
+
+function untilMidnight(): string {
+  const ms = nextResetTime(Date.now()) - Date.now();
+  const hrs = Math.floor(ms / 3600000);
+  const mins = Math.floor((ms % 3600000) / 60000);
+  return hrs ? `${hrs}h ${mins}m` : `${mins}m`;
 }
 
 export function oddsContent(): HTMLElement[] {
