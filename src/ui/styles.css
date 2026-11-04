@@ -352,6 +352,14 @@ button {
   text-align: center;
   padding: 4px 16px;
 }
+/* A soft pill keeps names readable on dark scenes (space, arcade, snowy night). */
+.nameplate .name {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
+  padding: 2px 18px 4px;
+  box-shadow: 0 2px 12px rgba(40, 20, 30, 0.1);
+}
 .nameplate .name {
   font-family: var(--display);
   font-weight: 700;

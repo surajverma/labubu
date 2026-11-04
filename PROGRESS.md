@@ -18,12 +18,26 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 | 11. Phase 2 polish + balance, v0.2.0 | done — economy sim incl. sets/achievements ≈ 4.5 boxes/day |
 | 12. Share card + gift/trade codes | done — `tests/gifts.test.ts`, `docs/screens/m12-*.png` |
 | 13. Play Store readiness, v0.3.0 | done — `store/`, `docs/privacy.md`, a11y audit `node scripts/a11y.mjs` |
+| 14. Online features (friends, leaderboards, online trades), v0.4.0 | **blocked — Checkpoint B** (not started, per spec) |
+| 15. Final review against the spec | done — see "Final review" below |
 
 ## Next
-- Milestone 14: online features — **blocked on Checkpoint B** (Supabase project URL + anon key).
-- Milestone 15: final review against the spec.
+- Milestone 14 once the owner completes Checkpoint B (below). Plan: `src/online/` behind
+  `FEATURES.online` (already reads `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`; the
+  workflow maps GitHub secrets `SUPABASE_URL` / `SUPABASE_ANON_KEY` to them), lazy-loaded
+  `@supabase/supabase-js`, anonymous sign-in + display name; tables `profiles` (friend
+  code, showcase of 6), `friendships`, `weekly_scores` (daily-order stars, rarest pull),
+  `trades` (escrowed: offer removed on propose, returned on decline/cancel; both sides
+  confirm) — all with Row Level Security and SECURITY DEFINER RPCs for state changes; never
+  a service-role key in the app. Everything must keep working offline. Then update
+  `docs/privacy.md` + `store/data-safety.md` (notes already written there) and bump to 0.4.0.
 
 ## Waiting on the owner
+- **Checkpoint B — backend (blocks Milestone 14).** Create a free Supabase project, then:
+  Authentication → Sign In / Providers → enable **Anonymous sign-ins**; Project Settings →
+  API → copy the **Project URL** and the **anon public** key. Add them as GitHub secrets
+  `SUPABASE_URL` and `SUPABASE_ANON_KEY` (never the service-role key). Tell the next
+  session they're set (or paste the URL + anon key — the anon key is public by design).
 - **Checkpoint C — Play Store.** Everything is prepared in `store/` (texts, data safety,
   content rating notes, release notes, 512 icon, feature graphic, 8 screenshots) and
   `docs/privacy.md`. Owner: create a Play Console developer account (one-time fee), enable
@@ -140,5 +154,43 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   rarity = icon + name + colour, switches use role=switch on the row, tab badges are
   announced.
 
+## Final review (Milestone 15) — spec vs. build
+Done as specified: original art only (CREDITS.md); Vite + TS strict + Three.js + Capacitor 8
+with all 8 plugins; seeded generator with generator versions + golden locks; all Phase 1 +
+Phase 2 part counts (tested); tags + compatibility rules; vinyl look (clearcoat physical
+materials, hemi/key/rim lights, contact shadow, 1024px canvas face decals, idle bob +
+blink, drag-rotate, pinch-zoom); spin by swipe/shake with haptic ticks + heavy landing,
+Face-only / Everything modes; blind box shake → pop → beam → bounce with tap-to-skip; 10
+starting boxes + hidden dev menu (7 taps); rarity tiers + odds screen + 100k-seed odds test;
+collection book with cached thumbnails, detail (live 3D, seed, rarity, date, favourite,
+rename, ×N), 16 sets with badges, filters; Preferences save with versioned migrations +
+export/import; Android back button; WebAudio sounds + music with separate toggles; coins,
+recycling, shop (100/400/250) with economy file + simulation; daily box + streaks + weekly
+freeze + reminder + clock guard; Order challenge (lock/spin, scoring, 30 levels on 3
+streets, solver-verified, tutorial, daily order); 20 achievements + profile; seasonal
+palettes + weekly themed box; share card; HMAC gift codes + trading; AAB in CI (with
+secrets); target SDK 36; adaptive icon, splash, feature graphic, 8 framed screenshots,
+store texts, privacy policy, data safety, content rating notes, release notes;
+accessibility pass; perf (DPR cap 2, < 50k tris, 200 re-rolls flat, quality benchmark);
+APK ≈ 4 MB; CI with signing fallback + releases; README.
+
+Not done / deviations (honest list):
+- **Milestone 14 (online)** — waiting on Checkpoint B, by design. `src/online/` does not
+  exist yet.
+- **Not verified on a real phone** (this environment can't run Android): 60 fps on Home,
+  cold start < 3 s, haptics feel, shake threshold, notification delivery, back button,
+  share sheet, file import from Android's picker. Owner should smoke-test the APK.
+- **Signed release builds / AAB** need Checkpoint A secrets; CI currently ships a debug
+  APK (debug-signed APKs from different runs may not update over each other — uninstall
+  first if Android refuses).
+- **Bloom** is a cheap rarity aura rather than post-process bloom (see Decisions).
+- **Order customers** appear as a face avatar on the order card, not as a full 3D
+  character walking in (keeps one 3D subject on screen for performance).
+- **Diwali/Holi dates** are hard-coded for 2026–2030 (`src/game/seasons.ts`).
+- Releases: tags can't be pushed from cloud sessions, so CI auto-creates `v<version>`
+  releases on the first build of each new `package.json` version.
+- Development happened on branch `ccr-20eb6c91-9t6qvs`; nothing is merged to `main` (no PR
+  was requested). CI runs on every branch.
+
 ## Open problems
-- none
+- none known beyond the list above.
