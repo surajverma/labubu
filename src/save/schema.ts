@@ -19,6 +19,8 @@ export interface OwnedCharacter {
   /** Number of copies owned (duplicates). */
   count: number;
   source: 'box' | 'starter' | 'gift' | 'order' | 'trade';
+  /** Voice picked for this buddy (unset = its natural voice from its look). */
+  voice?: 'normal' | 'funny' | 'robot' | 'deep';
 }
 
 export interface Settings {
@@ -33,8 +35,6 @@ export interface Settings {
   detectedQuality?: 'low' | 'medium' | 'high';
   spinMode: 'face' | 'everything';
   reducedMotion: boolean;
-  /** Voice used when the buddy repeats what you say. */
-  voice: 'normal' | 'funny' | 'robot' | 'deep';
 }
 
 export interface SaveData {
@@ -135,7 +135,6 @@ export function defaultSettings(): Settings {
     quality: 'auto',
     spinMode: 'face',
     reducedMotion: false,
-    voice: 'funny',
   };
 }
 

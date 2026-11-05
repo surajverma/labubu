@@ -11,6 +11,7 @@ import { CharacterView } from '../charView';
 import { h, icon } from '../dom';
 import { counter, rarityChip, seg } from '../widgets';
 import { VOICES, VoiceMimic, type MimicState, type VoiceId } from '../../audio/voice';
+import { voiceFor } from '../../gen/voice';
 
 let hintShown = false;
 
@@ -111,6 +112,7 @@ export class HomeScreen implements Screen {
     const home = g.homeCharacter();
     this.baseSpec = home ? specFor(home) : MASCOT;
     this.spec = this.baseSpec;
+    this.mimic.voice = this.currentVoice();
     this.updateBoxes();
     this.view.attach();
     this.view.setInsets(150, 250);
@@ -235,7 +237,7 @@ export class HomeScreen implements Screen {
       g.save.seen.push('voice-intro');
       g.changed('seen');
     }
-    this.mimic.voice = g.save.settings.voice;
+    this.mimic.voice = this.currentVoice();
     try {
       await this.mimic.start();
     } catch (e) {
@@ -253,8 +255,22 @@ export class HomeScreen implements Screen {
     this.voiceBar.style.display = 'none';
   }
 
+  /** The buddy's own voice: a saved pick for owned buddies, else its natural voice. */
+  private currentVoice(): VoiceId {
+    const home = this.app.game.homeCharacter();
+    if (home && this.spec === this.baseSpec && home.voice) return home.voice;
+    return voiceFor(this.spec);
+  }
+
+  /** Called whenever the buddy on Home changes. */
+  private syncVoice(): void {
+    this.mimic.voice = this.currentVoice();
+    if (this.mimic.state !== 'off') this.renderVoices();
+  }
+
   private renderVoices(): void {
-    const cur = this.app.game.save.settings.voice;
+    const cur = this.mimic.voice;
+    const natural = voiceFor(this.spec);
     this.voiceBar.replaceChildren(
       ...VOICES.map((v) =>
         h(
@@ -263,10 +279,12 @@ export class HomeScreen implements Screen {
             class: v.id === cur ? 'on' : '',
             role: 'radio',
             'aria-checked': String(v.id === cur),
+            'aria-label': v.id === natural ? `${v.label} (its own voice)` : v.label,
             onclick: () => this.pickVoice(v.id),
           },
           h('span', { 'aria-hidden': 'true' }, v.icon),
           v.label,
+          v.id === natural ? h('span', { class: 'own', 'aria-hidden': 'true' }, '★') : null,
         ),
       ),
     );
@@ -274,8 +292,12 @@ export class HomeScreen implements Screen {
 
   private pickVoice(id: VoiceId): void {
     this.app.tap();
-    this.app.game.save.settings.voice = id;
-    this.app.game.changed('settings');
+    // Remember the pick for your own buddy (back to "natural" if you pick its own voice).
+    const home = this.app.game.homeCharacter();
+    if (home && this.spec === this.baseSpec) {
+      home.voice = id === voiceFor(this.spec) ? undefined : id;
+      this.app.game.changed('voice');
+    }
     this.mimic.voice = id;
     this.renderVoices();
     // Hear the last thing again in the new voice.
@@ -308,6 +330,7 @@ export class HomeScreen implements Screen {
         sfx.poof();
         haptic.medium();
         this.renderName(name, note);
+        this.syncVoice();
       },
       onLand: () => {
         sfx.land();

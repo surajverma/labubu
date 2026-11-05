@@ -1,5 +1,7 @@
 import { displayName, specFor } from '../../game/game';
 import { partName } from '../../gen/parts';
+import { voiceFor } from '../../gen/voice';
+import { VOICES } from '../../audio/voice';
 import { SEASONS } from '../../game/seasons';
 import { sfx } from '../../audio/sfx';
 import { haptic } from '../../platform';
@@ -151,6 +153,8 @@ export class DetailScreen implements Screen {
         ),
         h('b', null, 'Scene'),
         h('span', null, partName('scene', s.scene)),
+        h('b', null, 'Voice'),
+        h('span', null, VOICES.find((v) => v.id === (o.voice ?? voiceFor(s)))!.label),
       ),
       h(
         'div',

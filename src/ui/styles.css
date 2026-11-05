@@ -1168,6 +1168,10 @@ body.reduce-motion .toast {
   box-shadow: 0 2px 8px rgba(90, 40, 30, 0.1);
   cursor: pointer;
 }
+.voices button .own {
+  color: var(--gold);
+  font-size: 12px;
+}
 .voices button.on {
   border-color: var(--purple);
   background: #efeaff;
