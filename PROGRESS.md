@@ -155,9 +155,21 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   announced.
 
 ## After M15 (owner requests)
-- **Everything spin animation** (`CharacterView.swapWithSpin`): old buddy twirls faster and
-  shrinks (0.42 s) → poof → new buddy spins in decelerating like a slot reel with
-  quarter-turn ticks (0.75 s) → bounce → face drum rolls to its real face.
+- **Everything spin = card reel** (`src/ui/cardReel.ts`): owner felt the twirl looked
+  unnatural. Now the whole scene is a card: the current frame (snapshot) shrinks and slides
+  away, two blurred cards whiz past like a slot reel, the new buddy's card (snapshot of the
+  new scene) slides in with a small overshoot and grows to full screen, then the live 3D
+  view takes over and the face drum rolls into place. Only images move (3D is paused for
+  the ~1 s reel), so it's cheap on any phone. Direction follows the swipe. Reduce motion →
+  plain poof. (Animating the live WebGL canvas itself stalled the compositor.)
+- **Natural voices** (`src/gen/voice.ts`): robot/antenna/pixel eyes/metallic/space suits →
+  Robot; bears/chonk/crowns/vikings/tuxedos → Deep; tiny/bunny/mouse/silly → Funny; else
+  Normal. Picking another voice for an owned buddy is saved on that buddy
+  (`OwnedCharacter.voice`); ★ marks a buddy's own voice; Detail shows it.
+- **Notification toggle hang fixed**: the plugin defaults to exact alarms and, without the
+  exact-alarm permission (which we removed for Play), opened the "Alarms & reminders"
+  screen and waited. Reminders now pass `isExactNotification: false`. The toggle also
+  explains how to re-enable notifications if they were denied before.
 - **Talk to your buddy** (`src/audio/voice.ts`, `src/audio/vad.ts`): mic → voice-activity
   segmenter (noise floor × 3.2, 0.7 s hang, 0.35–6 s utterances, 0.25 s pre-roll) →
   playback as Normal / Funny (rate 1.6) / Robot (60 Hz ring mod + 9 ms comb) / Deep

@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.3.2
+- "Everything" spin is now a card reel: the whole scene slides away like a card and the
+  new buddy's card slides in.
+- Every buddy has its own voice based on its look (robots talk robot, bears talk deep…);
+  your pick for a buddy is remembered.
+- Fixed: turning on the daily reminder could get stuck.
+
 ## 0.3.1 — Talk & spin
 - Talk to your buddy: it repeats what you say in Normal, Funny, Robot or Deep voice, with
   its head bobbing and mouth moving. Audio stays on your phone.

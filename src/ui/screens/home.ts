@@ -8,6 +8,7 @@ import { haptic, watchShake, requestMotionPermission } from '../../platform';
 import { randomSeed } from '../../rng';
 import type { App, Screen } from '../app';
 import { CharacterView } from '../charView';
+import { playCardReel } from '../cardReel';
 import { h, icon } from '../dom';
 import { counter, rarityChip, seg } from '../widgets';
 import { VOICES, VoiceMimic, type MimicState, type VoiceId } from '../../audio/voice';
@@ -187,7 +188,7 @@ export class HomeScreen implements Screen {
 
   private spin(direction: 1 | -1): void {
     const rig = this.view.rig;
-    if (!rig || this.view.busy) return;
+    if (!rig || this.view.busy || this.sliding) return;
     const g = this.app.game;
     g.save.stats.spins++;
     this.spinCount++;
@@ -195,7 +196,7 @@ export class HomeScreen implements Screen {
       const s = generateCharacter(randomSeed(), LATEST_GENERATOR_VERSION);
       this.spec = s;
       haptic.medium();
-      void this.view.swapWithSpin(s, this.swapFx(s));
+      void this.reelTo(s, s.name, 'Just for fun', direction);
       this.resetBtn.style.visibility = 'visible';
       g.changed('spin');
       return;
@@ -318,40 +319,71 @@ export class HomeScreen implements Screen {
     if (s === 'speaking') this.view.rig?.hop(0.25);
   }
 
-  /** Sounds/haptics for the Everything spin; the name updates when the new buddy appears. */
-  private swapFx(s: CharacterSpec, name = s.name, note: string | undefined = 'Just for fun') {
-    return {
-      startFace: randomFace(`${s.seed}:start`, s.generatorVersion),
-      onTick: () => {
-        sfx.tick();
-        haptic.tick();
-      },
-      onPoof: () => {
-        sfx.poof();
-        haptic.medium();
-        this.renderName(name, note);
-        this.syncVoice();
-      },
-      onLand: () => {
-        sfx.land();
-        haptic.land();
-      },
-    };
+  private sliding = false;
+
+  /** Everything re-roll: the scene slides away like a card and the new buddy's card slides in. */
+  private async reelTo(
+    spec: CharacterSpec,
+    name: string,
+    note: string | undefined,
+    direction: 1 | -1,
+  ): Promise<void> {
+    if (this.app.game.save.settings.reducedMotion) {
+      this.view.swapWithPoof(spec);
+      this.renderName(name, note);
+      this.syncVoice();
+      sfx.poof();
+      return;
+    }
+    this.sliding = true;
+    const startFace = randomFace(`${spec.seed}:start`, spec.generatorVersion);
+    sfx.poof();
+    try {
+      await playCardReel(this.app.stage, {
+        direction,
+        swap: () => {
+          this.view.show(spec).setFaceInstant(startFace);
+          this.syncVoice();
+        },
+        onTick: () => {
+          sfx.tick();
+          haptic.tick();
+        },
+        onLand: () => {
+          this.renderName(name, note);
+          const rig = this.view.rig;
+          if (!rig) return;
+          haptic.medium();
+          rig.hop(0.6);
+          // The card has landed — now its face rolls into place.
+          void rig.spinFace(spec.face, {
+            direction,
+            fillers: [],
+            durationMs: 900,
+            onTick: () => sfx.tick(),
+            onLand: () => {
+              sfx.land();
+              haptic.land();
+            },
+          });
+        },
+      });
+    } finally {
+      this.sliding = false;
+    }
   }
 
   private reset(): void {
     this.app.tap();
-    if (this.view.busy) return;
+    if (this.view.busy || this.sliding) return;
     if (this.spec !== this.baseSpec) {
       this.spec = this.baseSpec;
       const home = this.app.game.homeCharacter();
-      void this.view.swapWithSpin(
+      void this.reelTo(
         this.spec,
-        this.swapFx(
-          this.spec,
-          home ? displayName(home) : APP.mascotName,
-          home ? undefined : 'Your guide',
-        ),
+        home ? displayName(home) : APP.mascotName,
+        home ? undefined : 'Your guide',
+        -1,
       );
       this.resetBtn.style.visibility = 'hidden';
       return;

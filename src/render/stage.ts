@@ -458,6 +458,16 @@ export class Stage {
     return cv;
   }
 
+  /** Copies exactly what is on screen now (rendered in the same task, so it's never blank). */
+  captureFrame(): HTMLCanvasElement {
+    this.render();
+    const cv = document.createElement('canvas');
+    cv.width = this.canvas.width;
+    cv.height = this.canvas.height;
+    cv.getContext('2d')!.drawImage(this.canvas, 0, 0);
+    return cv;
+  }
+
   snapshot(width: number, height: number, type = 'image/webp'): string {
     return this.snapshotCanvas(width, height).toDataURL(type, 0.86);
   }

@@ -48,6 +48,10 @@ export async function scheduleDailyReminder(opts: {
           title: 'Your daily box is ready! 🎁',
           body: `A new buddy is waiting in ${APP.name}.`,
           schedule: { at, allowWhileIdle: true },
+          // A daily reminder doesn't need an exact alarm. Without this the plugin opens the
+          // "Alarms & reminders" settings screen (we don't hold that permission) and the
+          // call hangs until the user comes back.
+          isExactNotification: false,
           smallIcon: 'ic_stat_notify',
           iconColor: '#7a5cff',
         },

@@ -208,9 +208,19 @@ SETTINGS_SECTIONS.push((app, rerender) => {
           onclick: async () => {
             app.tap();
             s.notifications = !s.notifications;
-            if (s.notifications && isNative && (await notificationPermission()) === 'prompt') {
-              s.notifications = await requestNotificationPermission();
-              if (!app.game.save.seen.includes('notif-ask')) app.game.save.seen.push('notif-ask');
+            if (s.notifications && isNative) {
+              let perm = await notificationPermission();
+              if (perm === 'prompt') {
+                perm = (await requestNotificationPermission()) ? 'granted' : 'denied';
+                if (!app.game.save.seen.includes('notif-ask')) app.game.save.seen.push('notif-ask');
+              }
+              if (perm !== 'granted') {
+                // Android won't ask again after a "Don't allow": say where to switch it on.
+                s.notifications = false;
+                app.toast(
+                  'Notifications are off for this app — turn them on in Android Settings → Apps → SpinBuddies → Notifications.',
+                );
+              } else app.toast(`Reminder set for ${fmtHour(s.notifyHour)} 🎁`);
             }
             set();
           },
