@@ -10,6 +10,7 @@ import type { App, Screen } from '../app';
 import { CharacterView } from '../charView';
 import { h, icon } from '../dom';
 import { counter, rarityChip, seg } from '../widgets';
+import { VOICES, VoiceMimic, type MimicState, type VoiceId } from '../../audio/voice';
 
 let hintShown = false;
 
@@ -30,9 +31,32 @@ export class HomeScreen implements Screen {
   private stopShake: (() => void) | null = null;
   private spinCount = 0;
   private hintTimer = 0;
+  private hintEl = h(
+    'div',
+    { class: 'hint', 'aria-live': 'polite' },
+    'Swipe the face up or down — or shake!',
+  );
+  private micBtn: HTMLElement;
+  private voiceBar = h('div', { class: 'voices', role: 'radiogroup', 'aria-label': 'Buddy voice' });
+  private mimic: VoiceMimic;
+  private onHidden = () => {
+    if (document.hidden) this.stopTalk();
+  };
 
   constructor(private app: App) {
     this.view = new CharacterView(app.stage);
+    this.mimic = new VoiceMimic((s) => this.onMimic(s));
+    this.micBtn = h(
+      'button',
+      {
+        class: 'iconbtn mic',
+        'aria-label': 'Talk to your buddy',
+        'aria-pressed': 'false',
+        onclick: () => void this.toggleTalk(),
+      },
+      icon('mic', 22),
+    );
+    if (!VoiceMimic.supported()) this.micBtn.style.display = 'none';
     this.resetBtn = h(
       'button',
       { class: 'iconbtn', 'aria-label': 'Back to my buddy', onclick: () => this.reset() },
@@ -64,8 +88,9 @@ export class HomeScreen implements Screen {
       h(
         'div',
         { class: 'stack', style: 'align-items:center;padding:0 16px' },
-        h('div', { class: 'hint' }, 'Swipe the face up or down — or shake!'),
-        h('div', { class: 'row' }, this.resetBtn, mode),
+        this.voiceBar,
+        this.hintEl,
+        h('div', { class: 'row' }, this.resetBtn, mode, this.micBtn),
         h(
           'button',
           {
@@ -96,6 +121,9 @@ export class HomeScreen implements Screen {
     );
     this.resetBtn.style.visibility = 'hidden';
     this.app.stage.resetView();
+    this.view.onFrame(() => this.view.rig?.setTalk(this.mimic.sample()));
+    document.addEventListener('visibilitychange', this.onHidden);
+    this.voiceBar.style.display = 'none';
     this.app.stage.gestures = {
       onSwipe: (dir) => this.spin(dir),
       onTap: () => {
@@ -117,6 +145,8 @@ export class HomeScreen implements Screen {
 
   leave(): void {
     clearTimeout(this.hintTimer);
+    this.stopTalk();
+    document.removeEventListener('visibilitychange', this.onHidden);
     this.stopShake?.();
     this.stopShake = null;
     this.app.stage.gestures = {};
@@ -155,19 +185,16 @@ export class HomeScreen implements Screen {
 
   private spin(direction: 1 | -1): void {
     const rig = this.view.rig;
-    if (!rig || rig.isSpinning()) return;
+    if (!rig || this.view.busy) return;
     const g = this.app.game;
     g.save.stats.spins++;
     this.spinCount++;
     if (g.save.settings.spinMode === 'everything') {
-      sfx.poof();
-      haptic.land();
       const s = generateCharacter(randomSeed(), LATEST_GENERATOR_VERSION);
       this.spec = s;
-      this.view.swapWithPoof(s);
-      this.renderName(s.name, 'Just for fun');
+      haptic.medium();
+      void this.view.swapWithSpin(s, this.swapFx(s));
       this.resetBtn.style.visibility = 'visible';
-      setTimeout(() => sfx.land(), 250);
       g.changed('spin');
       return;
     }
@@ -193,12 +220,118 @@ export class HomeScreen implements Screen {
     g.changed('spin');
   }
 
+  // --- "Repeat after me" ---
+  private async toggleTalk(): Promise<void> {
+    this.app.tap();
+    if (this.mimic.state !== 'off') return this.stopTalk();
+    const g = this.app.game;
+    if (!g.save.seen.includes('voice-intro')) {
+      const ok = await this.app.confirm(
+        'Talk to your buddy!',
+        'Say something and your buddy repeats it in a silly voice. Your voice stays on this phone — it is never saved or sent anywhere. Android will ask to use the microphone.',
+        'Let’s talk',
+      );
+      if (!ok) return;
+      g.save.seen.push('voice-intro');
+      g.changed('seen');
+    }
+    this.mimic.voice = g.save.settings.voice;
+    try {
+      await this.mimic.start();
+    } catch (e) {
+      console.warn('mic', e);
+      this.app.toast('I need the microphone to listen — allow it in your phone’s settings.');
+      return;
+    }
+    this.renderVoices();
+    this.voiceBar.style.display = '';
+  }
+
+  private stopTalk(): void {
+    if (this.mimic.state !== 'off') this.mimic.stop();
+    this.view.rig?.setTalk(0);
+    this.voiceBar.style.display = 'none';
+  }
+
+  private renderVoices(): void {
+    const cur = this.app.game.save.settings.voice;
+    this.voiceBar.replaceChildren(
+      ...VOICES.map((v) =>
+        h(
+          'button',
+          {
+            class: v.id === cur ? 'on' : '',
+            role: 'radio',
+            'aria-checked': String(v.id === cur),
+            onclick: () => this.pickVoice(v.id),
+          },
+          h('span', { 'aria-hidden': 'true' }, v.icon),
+          v.label,
+        ),
+      ),
+    );
+  }
+
+  private pickVoice(id: VoiceId): void {
+    this.app.tap();
+    this.app.game.save.settings.voice = id;
+    this.app.game.changed('settings');
+    this.mimic.voice = id;
+    this.renderVoices();
+    // Hear the last thing again in the new voice.
+    this.mimic.replay();
+  }
+
+  private onMimic(s: MimicState): void {
+    this.micBtn.classList.toggle('on', s !== 'off');
+    this.micBtn.setAttribute('aria-pressed', String(s !== 'off'));
+    this.hintEl.textContent = {
+      off: 'Swipe the face up or down — or shake!',
+      listening: this.mimic.hasRecording
+        ? '🎤 Say something else… (tap a voice to replay)'
+        : '🎤 Listening… say something!',
+      hearing: '👂 I’m listening…',
+      speaking: '🗣️ Repeating!',
+    }[s];
+    if (s === 'speaking') this.view.rig?.hop(0.25);
+  }
+
+  /** Sounds/haptics for the Everything spin; the name updates when the new buddy appears. */
+  private swapFx(s: CharacterSpec, name = s.name, note: string | undefined = 'Just for fun') {
+    return {
+      startFace: randomFace(`${s.seed}:start`, s.generatorVersion),
+      onTick: () => {
+        sfx.tick();
+        haptic.tick();
+      },
+      onPoof: () => {
+        sfx.poof();
+        haptic.medium();
+        this.renderName(name, note);
+      },
+      onLand: () => {
+        sfx.land();
+        haptic.land();
+      },
+    };
+  }
+
   private reset(): void {
     this.app.tap();
+    if (this.view.busy) return;
     if (this.spec !== this.baseSpec) {
       this.spec = this.baseSpec;
-      this.view.swapWithPoof(this.spec);
-      sfx.poof();
+      const home = this.app.game.homeCharacter();
+      void this.view.swapWithSpin(
+        this.spec,
+        this.swapFx(
+          this.spec,
+          home ? displayName(home) : APP.mascotName,
+          home ? undefined : 'Your guide',
+        ),
+      );
+      this.resetBtn.style.visibility = 'hidden';
+      return;
     } else {
       this.view.rig?.setFaceInstant(this.spec.face);
       this.view.rig?.hop(0.5);

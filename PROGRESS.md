@@ -154,6 +154,19 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   rarity = icon + name + colour, switches use role=switch on the row, tab badges are
   announced.
 
+## After M15 (owner requests)
+- **Everything spin animation** (`CharacterView.swapWithSpin`): old buddy twirls faster and
+  shrinks (0.42 s) → poof → new buddy spins in decelerating like a slot reel with
+  quarter-turn ticks (0.75 s) → bounce → face drum rolls to its real face.
+- **Talk to your buddy** (`src/audio/voice.ts`, `src/audio/vad.ts`): mic → voice-activity
+  segmenter (noise floor × 3.2, 0.7 s hang, 0.35–6 s utterances, 0.25 s pre-roll) →
+  playback as Normal / Funny (rate 1.6) / Robot (60 Hz ring mod + 9 ms comb) / Deep
+  (rate 0.72). The mic is ignored while the buddy talks (no self-echo). Lip-sync: an
+  analyser drives head squash/nod and swaps to a lazily painted open-mouth face texture.
+  Mic permission is requested only after an in-app explanation; audio is never stored.
+  Android: `RECORD_AUDIO` + `MODIFY_AUDIO_SETTINGS`. Voice choice saved in
+  `settings.voice`. Not yet verified on a real phone (only Chromium's fake mic).
+
 ## Final review (Milestone 15) — spec vs. build
 Done as specified: original art only (CREDITS.md); Vite + TS strict + Three.js + Capacitor 8
 with all 8 plugins; seeded generator with generator versions + golden locks; all Phase 1 +

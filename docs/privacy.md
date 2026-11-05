@@ -19,13 +19,18 @@ SpinBuddies is a collectible toy game. We built it to collect **no personal data
 - No accounts, no sign-in, no e-mail address.
 - No advertising and no advertising identifiers.
 - No analytics or tracking. No third-party SDKs that collect data.
-- No location, contacts, camera or microphone access.
+- No location, contacts or camera access.
 - No real-money purchases.
 
 ## Permissions
 - **Notifications** (optional): one daily reminder when your free box is ready. You can
   turn it off in Settings or in Android's settings.
 - **Vibration**: for haptic feedback while spinning. Can be turned off in Settings.
+- **Microphone** (optional): only when you tap the microphone button on Home, so your
+  buddy can repeat what you say in a funny voice. The sound is kept in the phone's memory
+  just long enough to play it back, then thrown away. It is never saved to storage,
+  never uploaded and never shared. Tap the button again (or leave Home) and the
+  microphone turns off.
 - **Motion sensors**: to detect when you shake the phone to spin. Readings are used
   instantly and never stored or sent.
 

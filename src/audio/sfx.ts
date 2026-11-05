@@ -15,6 +15,11 @@ class Sfx {
   private nextBeat = 0;
   private beat = 0;
 
+  /** The shared AudioContext (null until the first user gesture). */
+  get context(): AudioContext | null {
+    return this.ctx;
+  }
+
   /** Must be called from a user gesture at least once (autoplay rules). */
   unlock(): void {
     if (!this.ctx) {

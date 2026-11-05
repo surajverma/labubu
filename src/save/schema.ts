@@ -33,6 +33,8 @@ export interface Settings {
   detectedQuality?: 'low' | 'medium' | 'high';
   spinMode: 'face' | 'everything';
   reducedMotion: boolean;
+  /** Voice used when the buddy repeats what you say. */
+  voice: 'normal' | 'funny' | 'robot' | 'deep';
 }
 
 export interface SaveData {
@@ -133,6 +135,7 @@ export function defaultSettings(): Settings {
     quality: 'auto',
     spinMode: 'face',
     reducedMotion: false,
+    voice: 'funny',
   };
 }
 

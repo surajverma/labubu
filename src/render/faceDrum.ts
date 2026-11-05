@@ -133,6 +133,52 @@ export class FaceDrum {
   commit(): void {
     this.tex.needsUpdate = true;
     this.paintBlink();
+    this.talkDirty = true;
+  }
+
+  // --- Talking: an "open mouth" copy of the front face (lazy, half resolution). ---
+  private talkCanvas: HTMLCanvasElement | null = null;
+  private talkTex: THREE.CanvasTexture | null = null;
+  private talkDirty = true;
+  private mouthOpen = false;
+
+  private paintTalk(): void {
+    const N = FaceDrum.N;
+    const s = 0.5;
+    if (!this.talkCanvas) {
+      this.talkCanvas = document.createElement('canvas');
+      this.talkCanvas.width = Math.round(this.W * s);
+      this.talkCanvas.height = Math.round(this.H * N * s);
+      this.talkTex = this.makeTex(this.talkCanvas);
+    }
+    const c = this.talkCanvas.getContext('2d')!;
+    c.clearRect(0, 0, this.talkCanvas.width, this.talkCanvas.height);
+    const cell = this.frontCell;
+    const face = this.cellFaces[cell];
+    if (face) {
+      const y0 = (N - cell - 1) * this.H * s;
+      const open = ['o', 'gasp', 'ooh', 'whistle', 'kiss'].includes(face.mouth) ? 'gasp' : 'laugh';
+      drawFace(
+        c,
+        { ...face, mouth: open },
+        this.ink,
+        (this.W * s) / 2,
+        y0 + (this.H * s) / 2,
+        (this.W * s) / 2,
+      );
+    }
+    this.talkTex!.offset.y = this.tex.offset.y;
+    this.talkTex!.needsUpdate = true;
+    this.talkDirty = false;
+  }
+
+  /** Swaps to the open-mouth texture while the buddy talks (no texture re-upload). */
+  setMouthOpen(on: boolean): void {
+    if (on === this.mouthOpen) return;
+    this.mouthOpen = on;
+    if (on && this.talkDirty) this.paintTalk();
+    this.mat.map = on && this.talkTex ? this.talkTex : this.blinking ? this.blinkTex : this.tex;
+    if (this.mat.emissiveMap) this.mat.emissiveMap = this.mat.map;
   }
 
   private paintBlink(): void {
@@ -162,6 +208,7 @@ export class FaceDrum {
     const off = a / (Math.PI * 2) - 0.5 + 0.5 / N;
     this.tex.offset.y = off;
     this.blinkTex.offset.y = off;
+    if (this.talkTex) this.talkTex.offset.y = off;
   }
 
   cellAngle(k: number): number {
@@ -189,6 +236,8 @@ export class FaceDrum {
     this.mat.dispose();
     this.tex.dispose();
     this.blinkTex.dispose();
+    this.talkTex?.dispose();
+    if (this.talkCanvas) this.talkCanvas.width = this.talkCanvas.height = 0;
     // Release canvas memory promptly on mobile.
     this.canvas.width = this.canvas.height = 0;
     this.blinkCanvas.width = this.blinkCanvas.height = 0;

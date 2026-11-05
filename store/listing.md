@@ -32,6 +32,10 @@ day that's the same for everyone. Get three stars and you can keep the buddy you
 A free box every day, bonus boxes on day 3 and a Premium box on day 7. Missed a day? A
 streak freeze has your back once a week.
 
+🎤 TALK TO YOUR BUDDY
+Say something and your buddy repeats it — in a normal, funny (chipmunk), robot or deep
+voice! Your voice never leaves your phone.
+
 🤝 SHARE & SWAP
 Make a beautiful card of any buddy and share it. Gift a buddy to a friend with a gift
 code — trade by gifting each other. Works offline.

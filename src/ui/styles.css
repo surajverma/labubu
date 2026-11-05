@@ -1135,3 +1135,41 @@ body.reduce-motion .toast {
   user-select: text;
   -webkit-user-select: text;
 }
+
+/* --- Talk / voices --- */
+.iconbtn.mic.on {
+  background: var(--primary);
+  color: #fff;
+  animation: mic-pulse 1.4s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 122, 89, 0.25);
+  }
+}
+.voices {
+  display: flex;
+  gap: 5px;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+.voices button {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 6px 10px;
+  min-height: 40px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(90, 40, 30, 0.1);
+  cursor: pointer;
+}
+.voices button.on {
+  border-color: var(--purple);
+  background: #efeaff;
+  color: var(--purple-d);
+}

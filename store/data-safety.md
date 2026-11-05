@@ -13,6 +13,10 @@ Notes:
 - Save data, thumbnails and settings are stored locally only.
 - Export save files and gift codes are created on-device and only shared by the user.
 - Device motion is read in memory for the shake gesture and never stored or sent.
+- Microphone ("repeat after me"): audio is processed on-device only, held in memory for
+  playback and discarded; never stored, transmitted or shared. Under Play's definition
+  data processed only on the device is not "collected", so the answer stays **No**. The
+  app declares `RECORD_AUDIO`; the in-app explanation is shown before Android's prompt.
 
 **If online features (Phase 3, Checkpoint B) ship**, update to: *Data collected* →
 "App activity › Other user-generated content" (display name, showcase buddies, scores) and

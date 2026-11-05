@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.3.1 — Talk & spin
+- Talk to your buddy: it repeats what you say in Normal, Funny, Robot or Deep voice, with
+  its head bobbing and mouth moving. Audio stays on your phone.
+- "Everything" spin is now a slot-machine twirl: the old buddy spins away, the new one
+  spins in, bounces, and its face rolls into place.
+
 ## 0.3.0 — Friends & Play Store prep
 - Share cards: make a picture of any buddy and share it.
 - Gift codes: give a buddy to a friend (works offline; trade by gifting each other).

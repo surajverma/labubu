@@ -37,6 +37,8 @@ export interface CharacterRig {
   /** Squash-and-stretch hop (used on reveal and taps). */
   hop(strength?: number): void;
   setFaceInstant(face: FaceSpec): void;
+  /** Lip-sync: 0 = quiet, 1 = loud. Bobs the head and opens the mouth. */
+  setTalk(level: number): void;
   dispose(): void;
 }
 
@@ -244,6 +246,7 @@ export function buildCharacter(
     landed: boolean;
   } = null;
   let hopT = -1;
+  let talk = 0;
   let hopStrength = 1;
   const step = (Math.PI * 2) / FaceDrum.N;
 
@@ -256,9 +259,18 @@ export function buildCharacter(
       // Breathing / bob.
       const breath = Math.sin(t * 2.1);
       bodyGroup.scale.set(1 - breath * 0.006, 1 + breath * 0.012, 1 - breath * 0.006);
-      headGroup.position.y = headY + breath * 0.012;
+      headGroup.position.y = headY + breath * 0.012 + talk * 0.05;
       headGroup.rotation.z = Math.sin(t * 0.7) * 0.035;
       headGroup.rotation.x = Math.sin(t * 0.53 + 1) * 0.02;
+      if (talk > 0.01) {
+        // Talking: squash/stretch the head with the syllables and nod a little.
+        headGroup.scale.set(
+          1 + talk * 0.04,
+          1 - talk * 0.06 + Math.sin(t * 22) * talk * 0.03,
+          1 + talk * 0.04,
+        );
+        headGroup.rotation.x -= talk * 0.12;
+      } else headGroup.scale.set(1, 1, 1);
       // Hop squash.
       if (hopT >= 0) {
         hopT += dt;
@@ -345,6 +357,10 @@ export function buildCharacter(
     hop(strength = 1) {
       hopT = 0;
       hopStrength = strength;
+    },
+    setTalk(level) {
+      talk = Math.max(0, Math.min(1, level));
+      drum.setMouthOpen(talk > 0.18 && !spin);
     },
     setFaceInstant(face) {
       drum.setCell(drum.frontCell, face);

@@ -1,7 +1,7 @@
 {
   "name": "spinbuddies",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "SpinBuddies \u2014 a collectible blind-box vinyl toy app",
   "scripts": {
