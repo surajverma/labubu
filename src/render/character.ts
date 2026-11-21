@@ -4,6 +4,16 @@ import { TUNABLES } from '../config';
 import { blobGeometry, capsule } from './geometry';
 import { MaterialKit } from './materials';
 import { bakeAO } from './ao';
+import {
+  MOVES,
+  REACTIONS,
+  NO_POSE,
+  movesFor,
+  pickWeighted,
+  type Pose,
+  type ReactionId,
+  type MoveId,
+} from './personality';
 import { BODY_SHAPES, HEAD_SHAPES, SMALL_BODIES } from './shapes';
 import { FaceDrum } from './faceDrum';
 import type { FaceInk } from './face';
@@ -40,6 +50,10 @@ export interface CharacterRig {
   setFaceInstant(face: FaceSpec): void;
   /** Lip-sync: 0 = quiet, 1 = loud. Bobs the head and opens the mouth. */
   setTalk(level: number): void;
+  /** Tap reaction (wiggle, squish, spin-jump or giggle). Returns which one played. */
+  react(): ReactionId | null;
+  /** Play a personality move now (idle moves, celebrations). */
+  perform(move: MoveId): void;
   dispose(): void;
 }
 
@@ -153,8 +167,10 @@ export function buildCharacter(
   const shoulderY = bodyCy + bp.ry * 0.25;
   const hand = new THREE.Vector3();
   const handL = new THREE.Vector3();
+  const pivots: THREE.Group[] = [];
   for (const s of [-1, 1]) {
     const pivot = new THREE.Group();
+    pivots.push(pivot);
     pivot.position.set(s * bp.rx * 0.82, shoulderY, 0.02);
     pivot.rotation.z = s * 0.62;
     bodyGroup.add(pivot);
@@ -250,6 +266,25 @@ export function buildCharacter(
     landed: boolean;
   } = null;
   let hopT = -1;
+  // Personality: idle moves that suit the look, plus tap reactions.
+  const moves = movesFor(spec);
+  const HELD_R = new Set([
+    'balloon',
+    'wand',
+    'lollipop',
+    'umbrella',
+    'foamsword',
+    'telescope',
+    'icecream',
+    'bubblewand',
+  ]);
+  const HELD_L = new Set(['camera', 'teddy']);
+  const holdR = HELD_R.has(spec.accessory);
+  const holdL = HELD_L.has(spec.accessory);
+  let idleIn = 3 + Math.random() * 3;
+  let act: null | { kind: 'move' | 'react'; id: MoveId | ReactionId; t: number; dur: number } =
+    null;
+  const pose: Pose & { spin: number } = { ...NO_POSE, spin: 0 };
   let talk = 0;
   let hopStrength = 1;
   const step = (Math.PI * 2) / FaceDrum.N;
@@ -266,6 +301,43 @@ export function buildCharacter(
       headGroup.position.y = headY + breath * 0.012 + talk * 0.05;
       headGroup.rotation.z = Math.sin(t * 0.7) * 0.035;
       headGroup.rotation.x = Math.sin(t * 0.53 + 1) * 0.02;
+      // Personality pose (idle move or tap reaction), additive.
+      Object.assign(pose, NO_POSE, { spin: 0 });
+      if (act) {
+        act.t += dt;
+        const k = Math.min(1, act.t / act.dur);
+        const p =
+          act.kind === 'move'
+            ? MOVES[act.id as MoveId].pose(k, t)
+            : REACTIONS[act.id as ReactionId].pose(k, t);
+        Object.assign(pose, p);
+        if (k >= 1) act = null;
+      } else if (!spin && talk < 0.01 && hopT < 0) {
+        idleIn -= dt;
+        if (idleIn <= 0) {
+          const id = pickWeighted(moves);
+          act = { kind: 'move', id, t: 0, dur: MOVES[id].dur };
+          idleIn = 4 + Math.random() * 5;
+        }
+      }
+      // Arms that hold something stay put; a wave uses the free arm.
+      let aR = pose.armR,
+        aL = pose.armL;
+      if (holdR && aR > 0 && act?.id === 'wave') [aR, aL] = [0, aR];
+      if (holdR) aR = 0;
+      if (holdL) aL = 0;
+      pivots[1]!.rotation.z = 0.62 + aR;
+      pivots[0]!.rotation.z = -0.62 - aL;
+      headGroup.rotation.y = pose.headYaw;
+      headGroup.rotation.x += pose.headPitch;
+      headGroup.rotation.z += pose.headRoll;
+      bodyGroup.rotation.z = pose.bodyRoll;
+      if (hopT < 0) {
+        root.position.y = pose.lift;
+        root.scale.set(1 + pose.squashY * 0.5, 1 - pose.squashY, 1 + pose.squashY * 0.5);
+        root.rotation.y = pose.spin;
+      }
+      drum.setMouthOpen((talk > 0.18 || pose.mouthOpen) && !spin);
       if (talk > 0.01) {
         // Talking: squash/stretch the head with the syllables and nod a little.
         headGroup.scale.set(
@@ -368,7 +440,18 @@ export function buildCharacter(
     },
     setTalk(level) {
       talk = Math.max(0, Math.min(1, level));
-      drum.setMouthOpen(talk > 0.18 && !spin);
+      if (talk > 0.05 && act?.kind === 'move') act = null;
+    },
+    perform(move) {
+      act = { kind: 'move', id: move, t: 0, dur: MOVES[move].dur };
+    },
+    react() {
+      if (spin) return null;
+      const ids = Object.keys(REACTIONS) as ReactionId[];
+      const id = ids[Math.floor(Math.random() * ids.length)]!;
+      act = { kind: 'react', id, t: 0, dur: REACTIONS[id].dur };
+      idleIn = 5 + Math.random() * 4;
+      return id;
     },
     setFaceInstant(face) {
       drum.setCell(drum.frontCell, face);

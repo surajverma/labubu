@@ -82,7 +82,7 @@ export class OrderScreen implements Screen {
     this.view.attach();
     this.refreshSpec(false);
     this.app.stage.resetView();
-    this.app.stage.gestures = { onTap: () => (this.view.rig?.hop(0.5), sfx.tap()) };
+    this.app.stage.gestures = { onTap: () => sfx.reaction(this.view.rig?.react() ?? null) };
     requestAnimationFrame(() =>
       this.view.setInsets(
         this.card.getBoundingClientRect().bottom + 6,

@@ -290,7 +290,8 @@ export class Stage {
     // Shadows: refresh the shadow map every 3rd frame (~20 Hz). Buddies move slowly, so
     // it can't visibly lag, and it saves two of every three extra shadow passes.
     this.frameNo++;
-    if (this.renderer.shadowMap.enabled && this.frameNo % 3 === 0) this.renderer.shadowMap.needsUpdate = true;
+    if (this.renderer.shadowMap.enabled && this.frameNo % 3 === 0)
+      this.renderer.shadowMap.needsUpdate = true;
     const dt = Math.min(0.05, this.clock.getDelta());
     this.elapsed += dt;
     // Turntable inertia + gentle return to front.

@@ -22,6 +22,7 @@ export function runDev(mode: string, params: URLSearchParams): void {
   if (mode === 'leak') return void leakTest(params);
   if (mode === 'tris') return trisReport(params);
   if (mode === 'feature') return void featureGraphic();
+  if (mode === 'moves') return movesSheet();
   if (mode !== 'sheet') return;
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'position:fixed;left:-9999px;top:0;width:400px;height:400px';
@@ -203,7 +204,13 @@ async function leakTest(params: URLSearchParams): Promise<void> {
   }
   view.effects.clear();
   stage.render();
-  const result = { samples, maxTris, maxTrisSeed, maxShadowFrame, programs: info.programs?.length ?? 0 };
+  const result = {
+    samples,
+    maxTris,
+    maxTrisSeed,
+    maxShadowFrame,
+    programs: info.programs?.length ?? 0,
+  };
   document.body.insertAdjacentHTML(
     'beforeend',
     `<pre style="position:fixed;top:0;left:0;background:#fff;font:12px monospace">${JSON.stringify(result, null, 1)}</pre>`,
@@ -306,5 +313,50 @@ async function featureGraphic(): Promise<void> {
   out.style.cssText = 'display:block';
   document.body.replaceChildren(out);
   document.body.style.margin = '0';
+  (window as unknown as { __ready: boolean }).__ready = true;
+}
+
+/** ?dev=moves — every personality move and tap reaction, frozen near its peak. */
+function movesSheet(): void {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;left:-9999px;width:400px;height:400px';
+  document.body.appendChild(canvas);
+  const stage = new Stage(canvas);
+  const grid = document.createElement('div');
+  grid.style.cssText =
+    'display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:6px;background:#222;font:12px system-ui;color:#fff';
+  document.getElementById('app')!.appendChild(grid);
+  const items: [string, (r: ReturnType<typeof buildCharacter>) => number][] = [
+    ...(['lookAround', 'wave', 'yawn', 'stretch', 'dance', 'shy', 'nod', 'bounce'] as const).map(
+      (m) =>
+        [m, (r: ReturnType<typeof buildCharacter>) => (r.perform(m), 0.42)] as [
+          string,
+          (r: ReturnType<typeof buildCharacter>) => number,
+        ],
+    ),
+    ['tap: random ×4', (r) => (r.react(), 0.3)],
+  ];
+  const spec = { ...MASCOT, outfit: 'none' };
+  for (const [label, start] of items) {
+    for (let rep = 0; rep < (label.startsWith('tap') ? 4 : 1); rep++) {
+      const rig = buildCharacter(spec, { quality: 'medium', faceRes: 512 });
+      const frac = start(rig);
+      // Advance to the chosen moment of the move.
+      for (let i = 0; i < 40; i++) rig.update((frac * 2.2) / 40, 0.6 + (i * frac * 2.2) / 40);
+      const url = stage.withContent(
+        null,
+        rig.root,
+        [rig.height * 1.5, 2.6, rig.height * 0.5, 0],
+        () => stage.snapshot(256, 256),
+      );
+      rig.dispose();
+      const cell = document.createElement('div');
+      const img = new Image();
+      img.src = url;
+      img.style.cssText = 'width:100%;display:block;border-radius:8px';
+      cell.append(img, Object.assign(document.createElement('div'), { textContent: label }));
+      grid.appendChild(cell);
+    }
+  }
   (window as unknown as { __ready: boolean }).__ready = true;
 }

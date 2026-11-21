@@ -127,6 +127,39 @@ class Sfx {
     this.noise(0.12, 1500, 0.8, 0.35);
     this.tone(300, 0.18, 'sine', 0.3, 0, 900);
   }
+  /** Squeaky vinyl toy being squeezed. */
+  squeak(): void {
+    if (!this.on) return;
+    this.tone(700, 0.09, 'sine', 0.16, 0, 1300);
+    this.tone(1200, 0.12, 'triangle', 0.1, 0.08, 800);
+  }
+  /** Springy jump. */
+  boing(): void {
+    if (!this.on) return;
+    this.tone(180, 0.35, 'sine', 0.25, 0, 520);
+    this.tone(360, 0.25, 'triangle', 0.06, 0.02, 900);
+  }
+  /** Tiny giggle: quick rising blips. */
+  giggle(): void {
+    if (!this.on) return;
+    [880, 1046, 932, 1175, 1046].forEach((f, i) =>
+      this.tone(f, 0.06, 'sine', 0.12, i * 0.075, f * 1.12),
+    );
+  }
+  /** Plasticky rattle for a wiggle. */
+  rattle(): void {
+    if (!this.on) return;
+    for (let i = 0; i < 5; i++) this.noise(0.035, 2200 + i * 200, 6, 0.12, i * 0.06);
+  }
+  /** Sound for a tap reaction. */
+  reaction(id: string | null): void {
+    if (id === 'squish') this.squeak();
+    else if (id === 'spinJump') this.boing();
+    else if (id === 'giggle') this.giggle();
+    else if (id === 'wiggle') this.rattle();
+    else this.tap();
+  }
+
   poof(): void {
     if (!this.on) return;
     this.noise(0.45, 600, 0.6, 0.3, 0, 'lowpass');

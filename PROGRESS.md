@@ -195,6 +195,19 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   complementary to the buddy, podium, product lighting; UI hidden; drag/pinch; "Share
   photo" exports 1080×1350 at the chosen angle with a small name tag. Back exits.
 
+## Polish batch 2 (v0.3.4) — life
+- **Personality** (`src/render/personality.ts`): every 4–9 s an idle buddy performs a move
+  chosen by its tags (look around, wave, yawn, stretch, dance, shy, nod, bounce). Poses are
+  additive offsets (head yaw/pitch/roll, body sway, lift, squash, arm swing). Arms holding
+  an accessory stay put (a wave uses the free arm). `rig.perform(move)` for scripted use.
+- **Tap reactions**: wiggle, squish, spin-jump, giggle (random) with matching synth sounds
+  (rattle, squeak, boing, giggle) on Home, Details and Orders.
+- **Scene life** (`src/render/sceneLife.ts`, applied after each scene's base build so the
+  base designs don't change): hero props (sandcastle, snowman, rocket, toy blocks,
+  cupcake, tent + campfire, treasure chest, hot-air balloon) and ambient motion (birds,
+  waves, drifting clouds, twinkling stars, shooting stars, fish, blinking lights). Scene
+  triangles still ≤ 44k.
+
 ## Final review (Milestone 15) — spec vs. build
 Done as specified: original art only (CREDITS.md); Vite + TS strict + Three.js + Capacitor 8
 with all 8 plugins; seeded generator with generator versions + golden locks; all Phase 1 +

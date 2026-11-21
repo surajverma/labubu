@@ -130,9 +130,8 @@ export class HomeScreen implements Screen {
     this.app.stage.gestures = {
       onSwipe: (dir) => this.spin(dir),
       onTap: () => {
-        this.view.rig?.hop(0.6);
-        sfx.tap();
-        haptic.tick();
+        sfx.reaction(this.view.rig?.react() ?? null);
+        haptic.medium();
       },
     };
     void requestMotionPermission().then((ok) => {

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { MaterialKit } from './materials';
 import type { Backdrop } from './stage';
 import { rngFromString, type Rng } from '../rng';
+import { SCENE_LIFE } from './sceneLife';
 
 interface SceneCtx {
   g: THREE.Group;
@@ -886,6 +887,7 @@ export function buildBackdrop(id: string): Backdrop {
     },
   };
   def.build(ctx);
+  SCENE_LIFE[id]?.(ctx);
   return {
     group: g,
     skyTop: def.skyTop,

@@ -125,9 +125,8 @@ export class DetailScreen implements Screen {
     this.app.stage.resetView();
     this.app.stage.gestures = {
       onTap: () => {
-        this.view.rig?.hop(0.6);
-        sfx.tap();
-        haptic.tick();
+        sfx.reaction(this.view.rig?.react() ?? null);
+        haptic.medium();
       },
       onSwipe: (dir) => {
         const rig = this.view.rig;

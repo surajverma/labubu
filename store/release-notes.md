@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.3.4 — Buddies come alive
+- Buddies now have personality: they look around, wave, yawn, stretch, dance or get shy
+  depending on their look.
+- Tap a buddy for a surprise reaction: wiggle, squish, spin-jump or giggle.
+- Scenes have new things to discover — sandcastles, snowmen, rockets, campfires, fish,
+  birds, shooting stars and more.
+
 ## 0.3.3 — Prettier toys
 - Softer, deeper look: buddies now have gentle shading where parts meet, and real soft
   shadows on High quality.
