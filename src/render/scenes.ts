@@ -880,6 +880,7 @@ export function buildBackdrop(id: string): Backdrop {
       geos.push(geo);
       const m = new THREE.Mesh(geo, mat);
       m.position.set(x, y, z);
+      m.receiveShadow = true;
       g.add(m);
       return m;
     },
@@ -892,6 +893,61 @@ export function buildBackdrop(id: string): Backdrop {
     light: def.light,
     fog: def.fog,
     update: (t, dt) => updaters.forEach((u) => u(t, dt)),
+    dispose() {
+      geos.forEach((x) => x.dispose());
+      kit.dispose();
+    },
+  };
+}
+
+/**
+ * Studio photo backdrop: a seamless pastel sweep in a colour that complements the buddy,
+ * a soft white podium, and product-shot lighting (warm key, cool rim).
+ */
+export function buildPhotoBackdrop(skinHex: string): Backdrop {
+  const kit = new MaterialKit();
+  const g = new THREE.Group();
+  g.name = 'scene:photo';
+  const geos: THREE.BufferGeometry[] = [];
+  const base = new THREE.Color(skinHex);
+  const hsl = { h: 0, s: 0, l: 0 };
+  base.getHSL(hsl);
+  const tint = (dl: number, s = 0.42) =>
+    new THREE.Color().setHSL((hsl.h + 0.5) % 1, s, dl).getStyle();
+  const add = (geo: THREE.BufferGeometry, mat: THREE.Material) => {
+    geos.push(geo);
+    const m = new THREE.Mesh(geo, mat);
+    m.receiveShadow = true;
+    g.add(m);
+    return m;
+  };
+  // Seamless sweep: a floor plus a curved back wall in the same pastel.
+  const floor = add(new THREE.CircleGeometry(14, 48), kit.prop(tint(0.9), false));
+  floor.rotation.x = -Math.PI / 2;
+  const wall = add(
+    new THREE.CylinderGeometry(6, 6, 12, 64, 1, true, Math.PI * 0.6, Math.PI * 0.8),
+    kit.prop(tint(0.86), false),
+  );
+  (wall.material as THREE.MeshStandardMaterial).side = THREE.BackSide;
+  wall.position.y = 6;
+  // Soft white podium.
+  const pod = add(new THREE.CylinderGeometry(0.85, 0.9, 0.16, 64), kit.plastic('#ffffff', 0.55));
+  pod.position.y = -0.07;
+  const rim = add(new THREE.TorusGeometry(0.87, 0.02, 8, 64), kit.plastic(tint(0.75, 0.5), 0.4));
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.005;
+  return {
+    group: g,
+    skyTop: tint(0.88),
+    skyBottom: tint(0.94),
+    light: {
+      hemiSky: '#ffffff',
+      hemiGround: tint(0.8),
+      key: '#fff1e2',
+      keyIntensity: 2.3,
+      rim: '#d6e6ff',
+      ambient: 1.05,
+    },
     dispose() {
       geos.forEach((x) => x.dispose());
       kit.dispose();

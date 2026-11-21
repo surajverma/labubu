@@ -25,6 +25,7 @@ export class MaterialKit {
           m.roughness = 0.42;
           m.clearcoat = 1;
           m.clearcoatRoughness = 0.08;
+          this.peel(m);
           break;
         case 'matte':
           m.roughness = 0.78;
@@ -38,6 +39,7 @@ export class MaterialKit {
           m.roughness = 0.3;
           m.clearcoat = 1;
           m.clearcoatRoughness = 0.1;
+          this.peel(m);
           m.iridescence = 1;
           m.iridescenceIOR = 1.35;
           m.iridescenceThicknessRange = [180, 520];
@@ -183,6 +185,61 @@ export class MaterialKit {
       this.cache.set(key, m);
     }
     return m;
+  }
+
+  private peelTex?: THREE.Texture;
+  /**
+   * Fine "orange-peel" ripple in the clearcoat, like real moulded vinyl: reflections break
+   * up very slightly instead of looking perfectly CG-smooth. Skipped on Low.
+   */
+  private peel(m: THREE.MeshPhysicalMaterial): void {
+    if (this.quality === 'low') return;
+    if (!this.peelTex) {
+      const size = 128;
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = size;
+      const ctx = cv.getContext('2d')!;
+      // Height field: many soft overlapping dimples (wrapped so the tile is seamless).
+      const hgt = new Float32Array(size * size);
+      let seed = 7;
+      const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      for (let k = 0; k < 260; k++) {
+        const cx = rnd() * size,
+          cy = rnd() * size,
+          r = 3 + rnd() * 6,
+          a = rnd() < 0.5 ? -1 : 1;
+        for (let y = -r; y <= r; y++)
+          for (let x = -r; x <= r; x++) {
+            const d = Math.hypot(x, y) / r;
+            if (d >= 1) continue;
+            const px = (Math.floor(cx + x) + size) % size,
+              py = (Math.floor(cy + y) + size) % size;
+            hgt[py * size + px] += a * (1 - d * d) * (1 - d * d);
+          }
+      }
+      const img = ctx.createImageData(size, size);
+      for (let y = 0; y < size; y++)
+        for (let x = 0; x < size; x++) {
+          const hx = hgt[y * size + ((x + 1) % size)]! - hgt[y * size + ((x - 1 + size) % size)]!;
+          const hy = hgt[((y + 1) % size) * size + x]! - hgt[((y - 1 + size) % size) * size + x]!;
+          const nx = -hx * 0.5,
+            ny = -hy * 0.5,
+            nz = 1;
+          const l = Math.hypot(nx, ny, nz);
+          const o = (y * size + x) * 4;
+          img.data[o] = (nx / l) * 127 + 128;
+          img.data[o + 1] = (ny / l) * 127 + 128;
+          img.data[o + 2] = (nz / l) * 127 + 128;
+          img.data[o + 3] = 255;
+        }
+      ctx.putImageData(img, 0, 0);
+      const t = new THREE.CanvasTexture(cv);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(26, 13);
+      this.peelTex = this.ownTexture(t);
+    }
+    m.clearcoatNormalMap = this.peelTex;
+    m.clearcoatNormalScale = new THREE.Vector2(0.07, 0.07);
   }
 
   private glitterTex?: THREE.Texture;

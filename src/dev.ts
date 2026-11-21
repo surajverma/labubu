@@ -131,6 +131,10 @@ function iconArt(params: URLSearchParams): void {
   scene.add(key, rim);
   const spec = JSON.parse(JSON.stringify(MASCOT)) as CharacterSpec;
   if (shot === 'bust') spec.outfit = 'none';
+  for (const l of ['eyes', 'mouth', 'brows', 'nose', 'cheeks'] as const) {
+    const v = params.get(l);
+    if (v) spec.face[l] = v;
+  }
   const rig = buildCharacter(spec, { quality: 'high', faceRes: 1024 });
   rig.update(0, 0.6);
   scene.add(rig.root);
@@ -167,6 +171,7 @@ async function leakTest(params: URLSearchParams): Promise<void> {
     (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize ?? 0;
   const samples: { i: number; geometries: number; textures: number; heapMB: number }[] = [];
   let maxTris = 0;
+  let maxShadowFrame = 0;
   let maxTrisSeed = '';
   for (let i = 0; i < n; i++) {
     const spec = generateCharacter(randomSeed(rng), Number(params.get('v') ?? 2));
@@ -174,8 +179,12 @@ async function leakTest(params: URLSearchParams): Promise<void> {
     // A few frames so effects and disposal run.
     view.effects.update(0.5);
     view.effects.update(0.5);
+    // Every 4th re-roll also refreshes the shadow map (as the live loop does every 3rd frame).
+    const withShadow = i % 4 === 0 && stage.renderer.shadowMap.enabled;
+    if (withShadow) stage.renderer.shadowMap.needsUpdate = true;
     stage.render();
-    if (info.render.triangles > maxTris) {
+    if (withShadow) maxShadowFrame = Math.max(maxShadowFrame, info.render.triangles);
+    if (!withShadow && info.render.triangles > maxTris) {
       maxTris = info.render.triangles;
       maxTrisSeed = spec.seed;
     }
@@ -194,7 +203,7 @@ async function leakTest(params: URLSearchParams): Promise<void> {
   }
   view.effects.clear();
   stage.render();
-  const result = { samples, maxTris, maxTrisSeed, programs: info.programs?.length ?? 0 };
+  const result = { samples, maxTris, maxTrisSeed, maxShadowFrame, programs: info.programs?.length ?? 0 };
   document.body.insertAdjacentHTML(
     'beforeend',
     `<pre style="position:fixed;top:0;left:0;background:#fff;font:12px monospace">${JSON.stringify(result, null, 1)}</pre>`,

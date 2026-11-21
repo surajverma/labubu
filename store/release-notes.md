@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.3.3 — Prettier toys
+- Softer, deeper look: buddies now have gentle shading where parts meet, and real soft
+  shadows on High quality.
+- Vinyl surfaces with a subtle real-plastic sheen; shinier eyes and mouths.
+- New studio photo mode: pose any buddy on a clean backdrop and share the photo.
+
 ## 0.3.2
 - "Everything" spin is now a card reel: the whole scene slides away like a card and the
   new buddy's card slides in.

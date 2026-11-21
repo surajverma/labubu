@@ -179,6 +179,22 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   Android: `RECORD_AUDIO` + `MODIFY_AUDIO_SETTINGS`. Voice choice saved in
   `settings.voice`. Not yet verified on a real phone (only Chromium's fake mic).
 
+## Polish batch 1 (v0.3.3) — graphics
+- **Baked AO** (`src/render/ao.ts`): every character vertex is darkened by nearby parts
+  (analytic sphere occlusion from each part's bounding-box sphere, max 28 occluders) and by
+  the ground; stored in vertex colours once per build. Capped so it never looks dirty.
+- **Real soft shadows on High only**: PCF soft shadow map from the key light, which moved
+  to the upper right (3.4, 5, 2.4) so shadows are actually visible (hat brims on heads,
+  head on body, floor). The shadow map refreshes every 3rd frame and before snapshots.
+  Perf: scene ≤ 43k triangles; shadow-refresh frames ≈ 82k (High only).
+- **Vinyl**: fine "orange-peel" clearcoat normal map (procedural, tiling) on glossy and
+  pearl finishes; blobs now carry spherical UVs for it. Off on Low.
+- **Faces**: printed-vinyl eye crescent reflection + oval main highlight + sparkle; wet
+  gloss on open mouths; "lashes" eyes now flick outward; tiny head squash on blinks.
+- **Studio photo mode** (Details → 📷 Photo): seamless pastel sweep in a colour
+  complementary to the buddy, podium, product lighting; UI hidden; drag/pinch; "Share
+  photo" exports 1080×1350 at the chosen angle with a small name tag. Back exits.
+
 ## Final review (Milestone 15) — spec vs. build
 Done as specified: original art only (CREDITS.md); Vite + TS strict + Three.js + Capacitor 8
 with all 8 plugins; seeded generator with generator versions + golden locks; all Phase 1 +

@@ -4,7 +4,7 @@ import type { Stage } from '../render/stage';
 import { idbGet, idbSet } from './idb';
 
 /** Bump when character visuals change so cached thumbnails are re-rendered. */
-const THUMB_VERSION = 4;
+const THUMB_VERSION = 5;
 const SIZE = 256;
 
 type Req = {

@@ -101,6 +101,14 @@ export function blobGeometry(p: BlobParams, o: BlobOptions = {}): THREE.BufferGe
     const merged = mergeVertices(g, 1e-5);
     g.dispose();
     merged.computeVertexNormals();
+    // Spherical UVs from the undeformed direction (for fine surface detail maps).
+    const dirs = merged.getAttribute('dir') as THREE.BufferAttribute;
+    const uv = new Float32Array(dirs.count * 2);
+    for (let i = 0; i < dirs.count; i++) {
+      uv[i * 2] = 0.5 + Math.atan2(dirs.getX(i), dirs.getZ(i)) / (Math.PI * 2);
+      uv[i * 2 + 1] = 0.5 + Math.asin(THREE.MathUtils.clamp(dirs.getY(i), -1, 1)) / Math.PI;
+    }
+    merged.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     return merged;
   }
   g.computeVertexNormals();

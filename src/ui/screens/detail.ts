@@ -1,4 +1,7 @@
 import { displayName, specFor } from '../../game/game';
+import { buildPhotoBackdrop } from '../../render/scenes';
+import { shareImage } from '../../share';
+import { APP } from '../../config';
 import { partName } from '../../gen/parts';
 import { voiceFor } from '../../gen/voice';
 import { VOICES } from '../../audio/voice';
@@ -25,6 +28,8 @@ export class DetailScreen implements Screen {
   private top = h('div', { class: 'topbar' });
   private card = h('div', { class: 'card', style: 'margin:0 12px' });
   private uid = '';
+  private photo = false;
+  private photoBar = h('div', { class: 'photobar passthrough' });
 
   constructor(private app: App) {
     this.view = new CharacterView(app.stage);
@@ -34,7 +39,78 @@ export class DetailScreen implements Screen {
       this.top,
       h('div', { class: 'spacer passthrough' }),
       this.card,
+      this.photoBar,
     );
+  }
+
+  // --- Studio photo mode ---
+  private enterPhoto(o: OwnedCharacter): void {
+    this.app.tap();
+    this.photo = true;
+    this.el.classList.add('photo');
+    const spec = specFor(o);
+    this.app.stage.setBackdrop(buildPhotoBackdrop(spec.palette.skin));
+    this.view.resetScene();
+    this.app.stage.resetView();
+    this.view.setInsets(70, 150, 0.84);
+    this.view.rig?.hop(0.5);
+    this.photoBar.replaceChildren(
+      h(
+        'div',
+        { class: 'row', style: 'justify-content:space-between;padding:0 16px' },
+        h(
+          'button',
+          { class: 'iconbtn', 'aria-label': 'Close photo mode', onclick: () => this.exitPhoto(o) },
+          icon('close'),
+        ),
+        h('div', { class: 'hint' }, 'Drag to turn · pinch to zoom'),
+      ),
+      h('div', { class: 'spacer passthrough' }),
+      h(
+        'div',
+        { class: 'center' },
+        h(
+          'button',
+          { class: 'btn', onclick: () => void this.sharePhoto(o) },
+          icon('share'),
+          'Share photo',
+        ),
+      ),
+    );
+  }
+
+  private exitPhoto(o: OwnedCharacter): void {
+    this.app.tap();
+    this.photo = false;
+    this.el.classList.remove('photo');
+    this.photoBar.replaceChildren();
+    this.view.show(specFor(o));
+    this.app.stage.resetView();
+    this.view.setInsets(76, this.card.offsetHeight + 30, 0.8);
+  }
+
+  private async sharePhoto(o: OwnedCharacter): Promise<void> {
+    this.app.tap();
+    sfx.pop();
+    // Keeps the angle and zoom you chose; 4:5 portrait like a product shot.
+    const cv = this.app.stage.snapshotCanvas(1080, 1350);
+    const c = cv.getContext('2d')!;
+    c.font = '700 40px Fredoka, system-ui, sans-serif';
+    c.textAlign = 'right';
+    c.fillStyle = 'rgba(58,36,48,0.55)';
+    c.fillText(`${displayName(o)} · ${APP.name}`, 1040, 1310);
+    try {
+      await shareImage(cv, `spinbuddies-${o.seed}-photo.png`, `${displayName(o)} in the studio!`);
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+  onBack(): boolean {
+    if (!this.photo) return false;
+    const o = this.app.game.find(this.uid);
+    if (o) this.exitPhoto(o);
+    return true;
   }
 
   enter(params?: Record<string, unknown>): void {
@@ -71,6 +147,9 @@ export class DetailScreen implements Screen {
   }
 
   leave(): void {
+    this.photo = false;
+    this.el.classList.remove('photo');
+    this.photoBar.replaceChildren();
     this.app.stage.gestures = {};
     this.view.detach();
     this.view.resetScene();
@@ -178,6 +257,12 @@ export class DetailScreen implements Screen {
           },
           icon('home', 20),
           'Show on Home',
+        ),
+        h(
+          'button',
+          { class: 'btn ghost small', onclick: () => this.enterPhoto(o) },
+          h('span', { 'aria-hidden': 'true' }, '📷'),
+          'Photo',
         ),
         ...extra,
       ),

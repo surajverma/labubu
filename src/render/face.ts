@@ -106,8 +106,31 @@ function shinyEye(c: Ctx, x: number, y: number, r: number, k: FaceInk, irisFrac 
     c.fillStyle = g;
     c.fill();
   }
-  highlight(c, x - r * 0.38, y - r * 0.42, r * 0.36);
+  // Printed-vinyl look: a soft crescent of reflected light along the bottom of the eye.
+  c.beginPath();
+  c.arc(x, y - r * 0.12, r * 0.8, Math.PI * 0.22, Math.PI * 0.78);
+  c.strokeStyle = 'rgba(255,255,255,0.3)';
+  c.lineWidth = r * 0.14;
+  c.lineCap = 'round';
+  c.stroke();
+  // Main highlight (slightly oval), a small one, and a tiny sparkle.
+  ellipse(c, x - r * 0.36, y - r * 0.42, r * 0.36, r * 0.32, -0.4);
+  fill(c, '#ffffff');
   highlight(c, x + r * 0.35, y + r * 0.38, r * 0.15);
+  highlight(c, x + r * 0.05, y - r * 0.62, r * 0.07);
+}
+
+/** Dark mouth fill with a wet gloss along the top edge (keeps the current path). */
+function mouthFill(c: Ctx): void {
+  fill(c, '#5a2232');
+  c.save();
+  c.clip();
+  const g = c.createLinearGradient(0, MY - 0.07, 0, MY + 0.05);
+  g.addColorStop(0, 'rgba(255,255,255,0.32)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  c.fillStyle = g;
+  c.fillRect(-0.4, MY - 0.12, 0.8, 0.2);
+  c.restore();
 }
 
 const EYES: Record<string, Drawer> = {
@@ -199,15 +222,22 @@ const EYES: Record<string, Drawer> = {
     both((s, x) => {
       if (o.blink) return closedArc(c, x, EYE_Y + 0.02, 0.12, false, k);
       shinyEye(c, x, EYE_Y + 0.01, 0.115, k, 0.7);
-      for (const a of [-0.25, -0.05]) {
-        const ang = Math.PI * (s > 0 ? -0.5 - a - 0.22 : -0.5 + a + 0.22);
-        const px = x + Math.cos(ang) * 0.12,
-          py = EYE_Y + Math.sin(ang) * 0.13;
+      // Three lashes flicking outward from the outer top corner.
+      [0.06, 0.16, 0.27].forEach((a, i) => {
+        const ang = s > 0 ? -Math.PI * a : -Math.PI * (1 - a);
+        const px = x + Math.cos(ang) * 0.118,
+          py = EYE_Y + 0.01 + Math.sin(ang) * 0.13;
+        const len = 0.06 - i * 0.012;
         c.beginPath();
         c.moveTo(px, py);
-        c.lineTo(px + Math.cos(ang) * 0.07, py + Math.sin(ang) * 0.07);
-        stroke(c, k.ink, LINE * 0.8);
-      }
+        c.quadraticCurveTo(
+          px + Math.cos(ang) * len * 0.6,
+          py + Math.sin(ang) * len * 0.6 - 0.01,
+          px + Math.cos(ang - s * 0.35) * len,
+          py + Math.sin(ang - s * 0.35) * len,
+        );
+        stroke(c, k.ink, LINE * 0.75);
+      });
     }),
   ovals: (c, k, o) =>
     both((_, x) => {
@@ -534,7 +564,7 @@ const MOUTHS: Record<string, Drawer> = {
     c.quadraticCurveTo(0.18, MY + 0.16, 0, MY + 0.16);
     c.quadraticCurveTo(-0.18, MY + 0.16, -0.2, MY - 0.04);
     c.closePath();
-    fill(c, '#5a2232');
+    mouthFill(c);
     c.save();
     c.clip();
     c.fillStyle = '#ffffff';
@@ -562,7 +592,7 @@ const MOUTHS: Record<string, Drawer> = {
   },
   o: (c, k) => {
     ellipse(c, 0, MY + 0.02, 0.055, 0.07);
-    fill(c, '#5a2232');
+    mouthFill(c);
     ellipse(c, 0, MY + 0.02, 0.055, 0.07);
     stroke(c, k.ink, LINE * 0.7);
   },
@@ -621,7 +651,7 @@ const MOUTHS: Record<string, Drawer> = {
     c.quadraticCurveTo(0.15, MY + 0.17, 0, MY + 0.17);
     c.quadraticCurveTo(-0.15, MY + 0.17, -0.16, MY - 0.04);
     c.closePath();
-    fill(c, '#5a2232');
+    mouthFill(c);
     c.save();
     c.clip();
     ellipse(c, 0, MY + 0.16, 0.1, 0.07);
@@ -682,7 +712,7 @@ const MOUTHS: Record<string, Drawer> = {
     c.quadraticCurveTo(0, MY - 0.0, 0.09, MY - 0.02);
     c.quadraticCurveTo(0.07, MY + 0.09, 0, MY + 0.09);
     c.quadraticCurveTo(-0.07, MY + 0.09, -0.09, MY - 0.02);
-    fill(c, '#5a2232');
+    mouthFill(c);
     c.save();
     c.clip();
     ellipse(c, 0, MY + 0.09, 0.06, 0.04);
@@ -707,7 +737,7 @@ const MOUTHS: Record<string, Drawer> = {
   },
   gasp: (c, k) => {
     ellipse(c, 0, MY + 0.03, 0.08, 0.1);
-    fill(c, '#5a2232');
+    mouthFill(c);
     c.save();
     c.clip();
     ellipse(c, 0, MY + 0.12, 0.06, 0.04);

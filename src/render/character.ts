@@ -3,6 +3,7 @@ import type { CharacterSpec, FaceSpec } from '../gen/types';
 import { TUNABLES } from '../config';
 import { blobGeometry, capsule } from './geometry';
 import { MaterialKit } from './materials';
+import { bakeAO } from './ao';
 import { BODY_SHAPES, HEAD_SHAPES, SMALL_BODIES } from './shapes';
 import { FaceDrum } from './faceDrum';
 import type { FaceInk } from './face';
@@ -68,7 +69,8 @@ export function buildCharacter(
   const geo = <T extends THREE.BufferGeometry>(g: T): T => (geos.push(g), g);
   const mesh = (g: THREE.BufferGeometry, m: THREE.Material, parent: THREE.Object3D) => {
     const me = new THREE.Mesh(geo(g), m);
-    me.castShadow = false;
+    me.castShadow = true;
+    me.receiveShadow = true;
     parent.add(me);
     return me;
   };
@@ -229,6 +231,8 @@ export function buildCharacter(
     halo.name = 'halo';
   }
 
+  // Soft contact darkening between parts (neck, ears, brims, feet): baked once.
+  bakeAO(root);
   const box = new THREE.Box3().setFromObject(root);
   const height = box.max.y;
 
@@ -270,7 +274,11 @@ export function buildCharacter(
           1 + talk * 0.04,
         );
         headGroup.rotation.x -= talk * 0.12;
-      } else headGroup.scale.set(1, 1, 1);
+      } else {
+        // Blinks get a tiny squash so they feel physical, not just a texture swap.
+        const b = blinkLeft > 0 ? Math.sin((1 - blinkLeft / 0.13) * Math.PI) * 0.022 : 0;
+        headGroup.scale.set(1 + b * 0.5, 1 - b, 1 + b * 0.5);
+      }
       // Hop squash.
       if (hopT >= 0) {
         hopT += dt;

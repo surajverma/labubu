@@ -86,7 +86,19 @@ export class Stage {
 
     this.hemi = new THREE.HemisphereLight('#ffffff', '#d9b8a8', 0.85);
     this.key = new THREE.DirectionalLight('#fff3e6', 2.4);
-    this.key.position.set(2.5, 4.5, 4.5);
+    this.key.position.set(3.4, 5, 2.4);
+    const sc = this.key.shadow;
+    sc.mapSize.set(1024, 1024);
+    sc.camera.left = sc.camera.bottom = -2.4;
+    sc.camera.right = sc.camera.top = 2.4;
+    sc.camera.near = 1;
+    sc.camera.far = 14;
+    sc.radius = 5;
+    sc.blurSamples = 12;
+    sc.bias = -0.0004;
+    sc.normalBias = 0.025;
+    sc.intensity = 0.7;
+    this.key.castShadow = this.quality === 'high';
     this.fill = new THREE.DirectionalLight('#dfe8ff', 0.6);
     this.fill.position.set(-4, 1.5, 3);
     this.rim = new THREE.DirectionalLight('#ffffff', 1.6);
@@ -126,6 +138,19 @@ export class Stage {
 
   setQuality(q: Quality): void {
     this.quality = q;
+    // Real soft shadows (buddy → ground/props, hats → heads) on High only.
+    const shadows = q === 'high';
+    if (this.renderer.shadowMap.enabled !== shadows) {
+      this.renderer.shadowMap.enabled = shadows;
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      this.renderer.shadowMap.autoUpdate = false;
+      this.renderer.shadowMap.needsUpdate = true;
+      this.scene.traverse((o) => {
+        const m = (o as THREE.Mesh).material as THREE.Material | undefined;
+        if (m) m.needsUpdate = true;
+      });
+    }
+    if (this.key) this.key.castShadow = shadows;
     const cap = q === 'low' ? 1 : q === 'medium' ? 1.5 : TUNABLES.maxPixelRatio;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
     this.resize();
@@ -259,7 +284,13 @@ export class Stage {
     this.applyFraming();
   }
 
+  private frameNo = 0;
+
   private tick(): void {
+    // Shadows: refresh the shadow map every 3rd frame (~20 Hz). Buddies move slowly, so
+    // it can't visibly lag, and it saves two of every three extra shadow passes.
+    this.frameNo++;
+    if (this.renderer.shadowMap.enabled && this.frameNo % 3 === 0) this.renderer.shadowMap.needsUpdate = true;
     const dt = Math.min(0.05, this.clock.getDelta());
     this.elapsed += dt;
     // Turntable inertia + gentle return to front.
@@ -444,6 +475,7 @@ export class Stage {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.applyFraming();
+    this.renderer.shadowMap.needsUpdate = true;
     this.render();
     const cv = document.createElement('canvas');
     cv.width = width;
@@ -460,6 +492,7 @@ export class Stage {
 
   /** Copies exactly what is on screen now (rendered in the same task, so it's never blank). */
   captureFrame(): HTMLCanvasElement {
+    this.renderer.shadowMap.needsUpdate = true;
     this.render();
     const cv = document.createElement('canvas');
     cv.width = this.canvas.width;
