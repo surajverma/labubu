@@ -314,6 +314,63 @@ export class App {
     });
   }
 
+  /**
+   * Coin shower: coins fly from `from` (default: screen centre) into the visible coin
+   * counter, which bumps and counts up to `total`.
+   */
+  coinShower(amount: number, total: number, from?: { x: number; y: number }): void {
+    const target = [...document.querySelectorAll<HTMLElement>('.counter.coins')].find(
+      (e) => e.offsetParent !== null,
+    );
+    const tr = target?.getBoundingClientRect() ?? {
+      left: window.innerWidth - 60,
+      top: 20,
+      width: 40,
+      height: 40,
+    };
+    const tx = tr.left + 18,
+      ty = tr.top + tr.height / 2;
+    const sx = from?.x ?? window.innerWidth / 2,
+      sy = from?.y ?? window.innerHeight * 0.45;
+    const n = Math.max(3, Math.min(12, Math.ceil(amount / 15)));
+    const label = target?.querySelector<HTMLElement>('[data-count=coins]');
+    const start = Math.max(0, total - amount);
+    const reduce = this.game.save.settings.reducedMotion;
+    if (reduce) {
+      if (label) label.textContent = String(total);
+      sfx.coin();
+      return;
+    }
+    for (let i = 0; i < n; i++) {
+      const c = h('div', { class: 'flycoin', 'aria-hidden': 'true' });
+      document.body.append(c);
+      const dx = (Math.random() - 0.5) * 120,
+        dy = -60 - Math.random() * 80;
+      const a = c.animate(
+        [
+          { transform: `translate(${sx - 14}px, ${sy - 14}px) scale(.4)`, opacity: 0 },
+          {
+            transform: `translate(${sx + dx - 14}px, ${sy + dy - 14}px) scale(1.1)`,
+            opacity: 1,
+            offset: 0.35,
+          },
+          { transform: `translate(${tx - 14}px, ${ty - 14}px) scale(.7)`, opacity: 1 },
+        ],
+        { duration: 750, delay: i * 70, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'both' },
+      );
+      a.onfinish = () => {
+        c.remove();
+        if (i % 2 === 0) sfx.coin();
+        if (label) label.textContent = String(Math.round(start + (amount * (i + 1)) / n));
+        target?.animate(
+          [{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }],
+          { duration: 180 },
+        );
+        if (i === n - 1) haptic.medium();
+      };
+    }
+  }
+
   private toastQueue: string[] = [];
   private toastBusy = false;
 

@@ -232,3 +232,73 @@ export class EffectRunner {
     this.list = [];
   }
 }
+
+/** Tumbling paper/ribbon bits when the box lid tears open (one instanced draw call). */
+export function paperBits(at: THREE.Vector3, colors: string[], count = 60): Effect {
+  const geo = new THREE.PlaneGeometry(0.07, 0.11);
+  const mat = new THREE.MeshStandardMaterial({
+    roughness: 0.7,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const mesh = new THREE.InstancedMesh(geo, mat, count);
+  const pos: THREE.Vector3[] = [];
+  const vel: THREE.Vector3[] = [];
+  const rot: THREE.Euler[] = [];
+  const spin: THREE.Vector3[] = [];
+  const c = new THREE.Color();
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    pos.push(at.clone().add(new THREE.Vector3(Math.cos(a) * 0.4, 0, Math.sin(a) * 0.4)));
+    vel.push(
+      new THREE.Vector3(
+        Math.cos(a) * (0.8 + Math.random() * 1.6),
+        3 + Math.random() * 2.5,
+        Math.sin(a) * (0.6 + Math.random() * 1.2),
+      ),
+    );
+    rot.push(new THREE.Euler(Math.random() * 6, Math.random() * 6, Math.random() * 6));
+    spin.push(
+      new THREE.Vector3(
+        (Math.random() - 0.5) * 14,
+        (Math.random() - 0.5) * 14,
+        (Math.random() - 0.5) * 14,
+      ),
+    );
+    mesh.setColorAt(i, c.set(colors[i % colors.length]!));
+  }
+  const m4 = new THREE.Matrix4();
+  const q = new THREE.Quaternion();
+  const one = new THREE.Vector3(1, 1, 1);
+  let t = 0;
+  const life = 2.2;
+  return {
+    object: mesh,
+    update(dt) {
+      t += dt;
+      for (let i = 0; i < count; i++) {
+        const v = vel[i]!;
+        v.y -= 5.5 * dt;
+        // Paper flutters: strong air drag, sideways sway.
+        v.multiplyScalar(Math.pow(0.35, dt));
+        v.x += Math.sin(t * 6 + i) * dt * 0.8;
+        pos[i]!.addScaledVector(v, dt);
+        if (pos[i]!.y < 0.02) pos[i]!.y = 0.02;
+        const r = rot[i]!;
+        r.x += spin[i]!.x * dt;
+        r.y += spin[i]!.y * dt;
+        r.z += spin[i]!.z * dt;
+        m4.compose(pos[i]!, q.setFromEuler(r), one);
+        mesh.setMatrixAt(i, m4);
+      }
+      mesh.instanceMatrix.needsUpdate = true;
+      mat.opacity = Math.min(1, Math.max(0, (life - t) / 0.5));
+      return t < life;
+    },
+    dispose() {
+      geo.dispose();
+      mat.dispose();
+      mesh.dispose();
+    },
+  };
+}

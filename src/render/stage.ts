@@ -156,6 +156,30 @@ export class Stage {
     this.resize();
   }
 
+  /**
+   * Dims the room (0 = normal, 1 = dark) for dramatic moments like a Secret reveal.
+   * Scales the lights and the sky; `setDim(0)` restores everything.
+   */
+  setDim(k: number): void {
+    const f = 1 - Math.max(0, Math.min(1, k)) * 0.85;
+    if (this.baseLights === null)
+      this.baseLights = [
+        this.hemi.intensity,
+        this.key.intensity,
+        this.fill.intensity,
+        this.rim.intensity,
+      ];
+    const [h, ky, fl, r] = this.baseLights;
+    this.hemi.intensity = h * f;
+    this.key.intensity = ky * f;
+    this.fill.intensity = fl * f;
+    this.rim.intensity = r * (1 + (1 - f) * 0.8); // rim stays bright: silhouette pops
+    this.scene.backgroundIntensity = f;
+    this.scene.environmentIntensity = 0.55 * f;
+    if (k <= 0) this.baseLights = null;
+  }
+  private baseLights: [number, number, number, number] | null = null;
+
   /** Show/hide the contact shadow under the subject. */
   setShadow(visible: boolean, scale = 1): void {
     this.shadow.visible = visible;

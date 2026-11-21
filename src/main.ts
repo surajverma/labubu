@@ -4,7 +4,7 @@ import { HomeScreen } from './ui/screens/home';
 import { BoxScreen } from './ui/screens/box';
 import { CollectionScreen } from './ui/screens/collection';
 import { DetailScreen } from './ui/screens/detail';
-import { SettingsScreen } from './ui/screens/settings';
+import { SettingsScreen, DEV_ACTIONS } from './ui/screens/settings';
 import { OrdersScreen } from './ui/screens/orders';
 import { OrderScreen } from './ui/screens/order';
 import { ProfileScreen } from './ui/screens/profile';
@@ -80,6 +80,22 @@ async function boot(): Promise<void> {
   };
   app.game.on(badges);
   app.onForeground.push(badges);
+  // Coin shower whenever coins go up (orders, recycling, achievements, sets, daily…).
+  let lastCoins = app.game.save.coins;
+  app.game.on((reason) => {
+    const now = app.game.save.coins;
+    if (now > lastCoins && reason !== 'import' && reason !== 'reset')
+      app.coinShower(now - lastCoins, now);
+    lastCoins = now;
+  });
+  for (const tier of ['epic', 'legendary', 'secret'] as const)
+    DEV_ACTIONS.push({
+      label: `Next box: ${tier}`,
+      run: (a) => {
+        a.game.devNextTier = tier;
+        a.toast(`Next box will be ${tier}`);
+      },
+    });
   app.onForeground.push(() => checkDaily(app));
   await app.start();
   (window as unknown as { __app: App; __ready: boolean }).__app = app;

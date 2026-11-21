@@ -1,5 +1,5 @@
 import { generateCharacter, LATEST_GENERATOR_VERSION } from '../gen/generate';
-import type { CharacterSpec } from '../gen/types';
+import type { CharacterSpec, Rarity } from '../gen/types';
 import { loadSave, writeSave } from '../save/storage';
 import { newSave, type OwnedCharacter, type SaveData } from '../save/schema';
 import { drawBox, type BoxKind, type Draw } from './series';
@@ -40,6 +40,8 @@ export class Game {
   save: SaveData = newSave();
   private listeners = new Set<Listener>();
   private saveTimer: number | null = null;
+  /** Developer menu: force the rarity of the next box (to preview reveals). */
+  devNextTier: Rarity | null = null;
   /** Hook for systems (sets, achievements) that react to changes. */
   readonly hooks: ((g: Game, reason: string) => void)[] = [];
 
@@ -239,7 +241,8 @@ export class Game {
     if (kind === 'premium' && !opts.paid && this.save.premiumBoxes <= 0) return null;
     if (kind === 'normal') this.save.boxes -= 1;
     if (kind === 'premium' && !opts.paid) this.save.premiumBoxes -= 1;
-    const draw = drawBox(kind, rng, opts);
+    const draw = drawBox(kind, rng, { ...opts, forceTier: this.devNextTier ?? undefined });
+    this.devNextTier = null;
     const { owned, isNew } = this.addCharacter(draw, 'box');
     this.save.stats.boxesOpened++;
     this.changed('box');

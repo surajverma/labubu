@@ -104,11 +104,11 @@ export interface Draw {
 export function drawBox(
   kind: BoxKind,
   rng: Rng,
-  opts: { tag?: string; seriesId?: number; variant?: string } = {},
+  opts: { tag?: string; seriesId?: number; variant?: string; forceTier?: Rarity } = {},
 ): Draw {
   const pool = getPool(opts.seriesId ?? latestSeries().id);
   const tiers = RARITIES.filter((r) => kind !== 'premium' || r !== 'common');
-  const tier = pickWeighted(rng, tiers, (r) => RARITY_ODDS[r]);
+  const tier = opts.forceTier ?? pickWeighted(rng, tiers, (r) => RARITY_ODDS[r]);
   let list = pool.byTier[tier];
   if (kind === 'themed' && opts.tag) {
     const tagged = list.filter((e) => e.tags.includes(opts.tag!));

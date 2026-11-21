@@ -13,7 +13,7 @@ import { haptic } from '../../platform';
 import { BlindBox } from '../../render/box';
 import { Aura } from '../../render/aura';
 import { buildCharacter, type CharacterRig } from '../../render/character';
-import { beam, EffectRunner, sparkles } from '../../render/effects';
+import { beam, EffectRunner, paperBits, sparkles } from '../../render/effects';
 import { buildBackdrop } from '../../render/scenes';
 import type { OwnedCharacter } from '../../save/schema';
 import type { App, Screen } from '../app';
@@ -44,7 +44,14 @@ export class BoxScreen implements Screen {
   private beamFx: ReturnType<typeof beam> | null = null;
   private kind: BoxKind = 'normal';
   private beamFade = -1;
+  private lastShake = 0;
+  private leak: ReturnType<typeof beam> | null = null;
+  private boxColor = '#ff8a6b';
   private aura: Aura | null = null;
+  /** Drama for big pulls: longer shake, dim room, slow-motion rise. */
+  private shakeDur = 1.5;
+  private popDur = 0.75;
+  private dimTo = 0;
   private opts: { tag?: string; variant?: string; paid?: boolean } = {};
 
   constructor(private app: App) {
@@ -83,6 +90,8 @@ export class BoxScreen implements Screen {
   }
 
   leave(): void {
+    this.app.stage.setDim(0);
+    this.leak = null;
     this.unsub?.();
     this.unsub = null;
     this.effects?.clear();
@@ -125,8 +134,10 @@ export class BoxScreen implements Screen {
     this.showTabs = true;
     this.app.updateTabs();
     const st = this.app.stage;
+    this.boxColor =
+      this.kind === 'premium' ? '#8a6bff' : this.kind === 'themed' ? '#3fb6a8' : '#ff8a6b';
     this.box = new BlindBox({
-      color: this.kind === 'premium' ? '#8a6bff' : this.kind === 'themed' ? '#3fb6a8' : '#ff8a6b',
+      color: this.boxColor,
       label: this.kind === 'premium' ? 'PREMIUM' : undefined,
     });
     st.world.add(this.box.group);
@@ -299,6 +310,7 @@ export class BoxScreen implements Screen {
     this.opts = {};
     this.result = r;
     this.phase = 'shaking';
+    this.lastShake = -1;
     this.t = 0;
     this.box.shake();
     this.showTabs = false;
@@ -307,7 +319,12 @@ export class BoxScreen implements Screen {
     this.info.replaceChildren();
     this.bottom.replaceChildren(h('div', { class: 'hint' }, 'Tap to skip'));
     this.skipLayer.style.display = 'block';
-    haptic.medium();
+    const rank = rarityRank(r.spec.rarity);
+    this.shakeDur = r.spec.rarity === 'secret' ? 2.8 : rank >= 3 ? 2.1 : 1.5;
+    this.popDur = rank >= 3 ? 1.45 : 0.75;
+    this.dimTo = r.spec.rarity === 'secret' ? 0.9 : rank >= 3 ? 0.55 : 0;
+    haptic.rumble(this.shakeDur * 1000);
+    if (r.spec.rarity === 'secret') haptic.heartbeat(3);
     // Build the character now (hidden) so the reveal has no hitch.
     this.rig = buildCharacter(r.spec, { quality: this.app.quality });
     this.rig.root.visible = false;
@@ -321,6 +338,14 @@ export class BoxScreen implements Screen {
     this.box.pop();
     sfx.pop();
     haptic.land();
+    // The lid tears open: paper and ribbon bits flutter out.
+    this.effects.add(
+      paperBits(
+        new THREE.Vector3(0, 1.1, 0),
+        [this.boxColor, '#ffd34d', '#ffffff', '#ffb3c7', '#7fd6ff'],
+        70,
+      ),
+    );
     const spec = this.result.spec;
     const color = RARITY_INFO[spec.rarity].color;
     this.beamFx = this.effects.add(
@@ -344,6 +369,10 @@ export class BoxScreen implements Screen {
     this.rig.root.scale.setScalar(1);
     this.box?.sink();
     this.beamFade = 1;
+    // Lights back up for the big reveal.
+    this.app.stage.setDim(0);
+    this.leak?.setStrength(0);
+    this.leak = null;
     const st = this.app.stage;
     if (rarityRank(spec.rarity) >= 2) {
       this.aura = new Aura(spec.rarity, this.rig.height);
@@ -352,7 +381,8 @@ export class BoxScreen implements Screen {
     st.frameInsets(this.rig.height, 2.0, this.rig.height * 0.5, 150, 250, 0.88);
     this.rig.hop(1);
     sfx.fanfare(spec.rarity);
-    if (rarityRank(spec.rarity) >= 1) haptic.success();
+    if (rarityRank(spec.rarity) >= 3) haptic.celebrate();
+    else if (rarityRank(spec.rarity) >= 1) haptic.success();
     const colors =
       spec.rarity === 'secret'
         ? ['#ff6b6b', '#ffc93c', '#5fd068', '#4aa8ff', '#b56bff']
@@ -457,14 +487,32 @@ export class BoxScreen implements Screen {
     this.aura?.update(dt);
     if (this.phase === 'shaking') {
       this.t += dt;
-      if (Math.floor((this.t - dt) / 0.35) !== Math.floor(this.t / 0.35)) {
+      // Shakes come faster as the box gets more excited.
+      const k = Math.min(1, this.t / this.shakeDur);
+      const every = 0.35 - k * 0.17;
+      if (this.t - this.lastShake >= every) {
+        this.lastShake = this.t;
         sfx.shake();
-        haptic.tick();
       }
-      if (this.t >= 1.5) this.pop();
+      if (this.dimTo > 0) {
+        this.app.stage.setDim(this.dimTo * Math.min(1, k * 1.6));
+        // Light leaks out of the box just before it pops.
+        if (k > 0.6 && !this.leak && this.effects && this.result) {
+          const col = RARITY_INFO[this.result.spec.rarity].color;
+          this.leak = this.effects.add(
+            beam(
+              new THREE.Vector3(0, 0.3, 0),
+              col === 'rainbow' ? '#ffffff' : col,
+              this.result.spec.rarity === 'secret',
+            ),
+          );
+        }
+        this.leak?.setStrength(Math.max(0, (k - 0.6) / 0.4) * 0.35);
+      }
+      if (this.t >= this.shakeDur) this.pop();
     } else if (this.phase === 'popping' && this.rig) {
       this.t += dt;
-      const k = Math.min(1, this.t / 0.75);
+      const k = Math.min(1, this.t / this.popDur);
       const e = 1 - Math.pow(1 - k, 3);
       this.rig.root.position.y = 0.4 + Math.sin(k * Math.PI) * 0.9 - 0.4 * e;
       this.rig.root.scale.setScalar(0.2 + 0.8 * e);

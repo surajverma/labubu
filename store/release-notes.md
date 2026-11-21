@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.3.5 — Big moments
+- Box opening is more exciting: the box rumbles in your hand and the lid tears open in a
+  shower of paper bits.
+- Legendary and Secret pulls are now an event: the room goes dark, light leaks from the
+  box, your buddy rises in slow motion.
+- Coins now fly into your coin counter whenever you earn them.
+
 ## 0.3.4 — Buddies come alive
 - Buddies now have personality: they look around, wave, yawn, stretch, dance or get shy
   depending on their look.

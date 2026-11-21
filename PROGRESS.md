@@ -208,6 +208,18 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
   waves, drifting clouds, twinkling stars, shooting stars, fish, blinking lights). Scene
   triangles still ≤ 44k.
 
+## Polish batch 3 (v0.3.5) — moments
+- **Box opening**: building haptic rumble while it shakes (shakes speed up), the lid tears
+  open into ~70 fluttering paper/ribbon bits (one InstancedMesh draw call).
+- **Legendary / Secret drama**: longer shake (2.1 s / 2.8 s) while the room dims
+  (`Stage.setDim`: lights + sky down, rim up), light leaks from the box, slow-motion rise
+  (1.45 s), lights back up with a flash; Secret also gets heartbeat haptics; big pulls end
+  with a celebration haptic pattern.
+- **Coin shower** (`App.coinShower`): any coin gain flies gold coins into the visible coin
+  counter, which bumps and counts up. Reduce motion → instant.
+- **Haptic patterns** (`haptic.pattern/rumble/heartbeat/celebrate`).
+- **Dev menu**: "Next box: epic / legendary / secret" to preview reveals.
+
 ## Final review (Milestone 15) — spec vs. build
 Done as specified: original art only (CREDITS.md); Vite + TS strict + Three.js + Capacitor 8
 with all 8 plugins; seeded generator with generator versions + golden locks; all Phase 1 +
