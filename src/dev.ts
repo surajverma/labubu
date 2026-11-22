@@ -23,6 +23,7 @@ export function runDev(mode: string, params: URLSearchParams): void {
   if (mode === 'tris') return trisReport(params);
   if (mode === 'feature') return void featureGraphic();
   if (mode === 'moves') return movesSheet();
+  if (mode === 'music') return void musicLab();
   if (mode !== 'sheet') return;
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'position:fixed;left:-9999px;top:0;width:400px;height:400px';
@@ -359,4 +360,77 @@ function movesSheet(): void {
     }
   }
   (window as unknown as { __ready: boolean }).__ready = true;
+}
+
+/**
+ * ?dev=music — renders each mood offline, shows loudness numbers, and offers WAV
+ * downloads. `window.__music` holds results (and base64 WAVs) for scripts.
+ */
+async function musicLab(): Promise<void> {
+  const { MOODS } = await import('./audio/compose');
+  const { renderMood } = await import('./audio/music');
+  const root = document.getElementById('app')!;
+  root.style.cssText = 'padding:16px;font:14px system-ui;background:#fff;overflow:auto';
+  const out: Record<string, { peak: number; rms: number; secs: number; wav: string }> = {};
+  for (const id of Object.keys(MOODS)) {
+    const buf = await renderMood(id, 16);
+    let peak = 0,
+      sum = 0;
+    const n = buf.length;
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < n; i++) {
+        const a = Math.abs(d[i]!);
+        if (a > peak) peak = a;
+        sum += d[i]! * d[i]!;
+      }
+    }
+    const rms = Math.sqrt(sum / (n * buf.numberOfChannels));
+    const wav = toWav(buf);
+    const b64 = await new Promise<string>((res) => {
+      const r = new FileReader();
+      r.onload = () => res(String(r.result).split(',')[1] ?? '');
+      r.readAsDataURL(wav);
+    });
+    out[id] = { peak, rms, secs: buf.duration, wav: b64 };
+    const row = document.createElement('div');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(wav);
+    a.download = `music-${id}.wav`;
+    a.textContent = `${id}: peak ${peak.toFixed(2)}, rms ${(20 * Math.log10(rms)).toFixed(1)} dB`;
+    row.appendChild(a);
+    root.appendChild(row);
+  }
+  (window as unknown as { __music: typeof out }).__music = out;
+}
+
+function toWav(buf: AudioBuffer): Blob {
+  const ch = buf.numberOfChannels;
+  const n = buf.length;
+  const data = new DataView(new ArrayBuffer(44 + n * ch * 2));
+  const str = (o: number, s: string): void => {
+    for (let i = 0; i < s.length; i++) data.setUint8(o + i, s.charCodeAt(i));
+  };
+  str(0, 'RIFF');
+  data.setUint32(4, 36 + n * ch * 2, true);
+  str(8, 'WAVE');
+  str(12, 'fmt ');
+  data.setUint32(16, 16, true);
+  data.setUint16(20, 1, true);
+  data.setUint16(22, ch, true);
+  data.setUint32(24, buf.sampleRate, true);
+  data.setUint32(28, buf.sampleRate * ch * 2, true);
+  data.setUint16(32, ch * 2, true);
+  data.setUint16(34, 16, true);
+  str(36, 'data');
+  data.setUint32(40, n * ch * 2, true);
+  const chans = Array.from({ length: ch }, (_, i) => buf.getChannelData(i));
+  let o = 44;
+  for (let i = 0; i < n; i++)
+    for (let c = 0; c < ch; c++) {
+      const v = Math.max(-1, Math.min(1, chans[c]![i]!));
+      data.setInt16(o, v < 0 ? v * 0x8000 : v * 0x7fff, true);
+      o += 2;
+    }
+  return new Blob([data], { type: 'audio/wav' });
 }

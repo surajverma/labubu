@@ -3,6 +3,7 @@ import { exportSave, pickSaveFile } from '../../save/exportImport';
 import { clearSave } from '../../save/storage';
 import { newSave, type Settings } from '../../save/schema';
 import { idbClear } from '../idb';
+import { sfx } from '../../audio/sfx';
 import type { App, Screen } from '../app';
 import { h, icon } from '../dom';
 import { toggle } from '../widgets';
@@ -42,6 +43,34 @@ export class SettingsScreen implements Screen {
     this.app.applySettings();
     this.app.game.changed('settings');
     this.render();
+  }
+
+  /** Volume slider; changes apply live and save when you let go. */
+  private sliderRow(
+    label: string,
+    k: 'sfxVolume' | 'musicVolume',
+    def: number,
+    disabled: boolean,
+  ): HTMLElement {
+    const s = this.app.game.save.settings;
+    const input = h('input', {
+      type: 'range',
+      min: '0',
+      max: '100',
+      step: '5',
+      value: String(Math.round((s[k] ?? def) * 100)),
+      'aria-label': label,
+    }) as HTMLInputElement;
+    input.disabled = disabled;
+    input.addEventListener('input', () => {
+      s[k] = Number(input.value) / 100;
+      this.app.applySettings();
+    });
+    input.addEventListener('change', () => {
+      this.app.game.changed('settings');
+      if (k === 'sfxVolume') sfx.tap();
+    });
+    return h('div', { class: 'item slider' }, h('span', { class: 'label' }, label), input);
   }
 
   private switchRow(
@@ -117,7 +146,9 @@ export class SettingsScreen implements Screen {
         'div',
         { class: 'list' },
         this.switchRow('Sound effects', 'sound'),
-        this.switchRow('Music', 'music', 'A soft background tune'),
+        this.sliderRow('Effects volume', 'sfxVolume', 1, !this.app.game.save.settings.sound),
+        this.switchRow('Music', 'music', 'Each scene has its own tune'),
+        this.sliderRow('Music volume', 'musicVolume', 0.8, !this.app.game.save.settings.music),
         this.switchRow('Haptics', 'haptics', 'Little buzzes when things spin'),
       ),
       ...extra,

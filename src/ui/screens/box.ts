@@ -80,6 +80,7 @@ export class BoxScreen implements Screen {
     };
     const st = this.app.stage;
     st.setBackdrop(buildBackdrop('boxroom'));
+    sfx.setScene('boxroom');
     st.resetView();
     st.gestures = { canRotate: () => this.phase === 'revealed' };
     this.effects = new EffectRunner(st.world);
@@ -324,6 +325,8 @@ export class BoxScreen implements Screen {
     this.popDur = rank >= 3 ? 1.45 : 0.75;
     this.dimTo = r.spec.rarity === 'secret' ? 0.9 : rank >= 3 ? 0.55 : 0;
     haptic.rumble(this.shakeDur * 1000);
+    sfx.riser(this.shakeDur, rank >= 2);
+    if (this.dimTo > 0) sfx.dim();
     if (r.spec.rarity === 'secret') haptic.heartbeat(3);
     // Build the character now (hidden) so the reveal has no hitch.
     this.rig = buildCharacter(r.spec, { quality: this.app.quality });

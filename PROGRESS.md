@@ -220,6 +220,28 @@ Resume from this file + `SPEC.md`. Work happens on branch `ccr-20eb6c91-9t6qvs`.
 - **Haptic patterns** (`haptic.pattern/rumble/heartbeat/celebrate`).
 - **Dev menu**: "Next box: epic / legendary / secret" to preview reveals.
 
+## Polish batch 4 (v0.3.6) — sound
+- **Music is composed in code per scene mood** (`src/audio/compose.ts`, pure + tested in
+  `tests/compose.test.ts`): 9 moods — cozy (studio/bedroom/garden), beach (beach/sunset),
+  winter (snowy/crystal), dreamy (space/clouds), bouncy (candy/arcade), folk
+  (forest/autumn/desert), ocean (underwater), lofi (rooftop), box (box room, no melody).
+  Each has key/scale, 8-bar chord loop, tempo, swing, lead/comp/bass/drums; melodies are
+  seeded per mood and phrase (16-bar form A A' B A), smooth voice-leading to chord tones.
+- **Instruments** (`src/audio/instruments.ts`): pad, bass, music-box bell, pluck, marimba,
+  flute (vibrato + breath), chip, FM electric piano, kick, snap, shaker, bubble; generated
+  reverb impulse. **Engine** (`src/audio/music.ts`) schedules bars ahead, switches mood on
+  the next bar line, compressor on the bus.
+- **Mixing**: separate Effects / Music volume sliders (Settings; `settings.sfxVolume`,
+  `musicVolume`, optional so no save migration). Music ducks under fanfares, the box
+  riser and to 10% while "Repeat after me" listens (so the mic doesn't hear it).
+- **Box sounds**: rising noise swell + pitch riser under every shake, snare roll for
+  Epic+, low "whoomp" when the lights dim; fanfares now use bell/marimba runs into an
+  electric-piano chord (pad + sparkle bells for Legendary/Secret).
+- **Checking without ears**: `npm run build && node scripts/music.mjs [outDir]` renders
+  every mood offline (`?dev=music`), prints peak/RMS (fails if clipping), optionally writes
+  WAVs. All moods sit at −25…−28 dB RMS, peaks ≤ 0.4.
+- Music is still **off by default** for new players (unchanged); owner to judge by ear.
+
 ## Final review (Milestone 15) — spec vs. build
 Done as specified: original art only (CREDITS.md); Vite + TS strict + Three.js + Capacitor 8
 with all 8 plugins; seeded generator with generator versions + golden locks; all Phase 1 +

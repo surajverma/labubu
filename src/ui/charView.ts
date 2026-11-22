@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { CharacterSpec } from '../gen/types';
 import { buildCharacter, type CharacterRig } from '../render/character';
 import { buildBackdrop } from '../render/scenes';
+import { sfx } from '../audio/sfx';
 import { EffectRunner, poof } from '../render/effects';
 import type { Stage } from '../render/stage';
 import { rarityRank } from '../gen/rarity';
@@ -81,6 +82,7 @@ export class CharacterView {
       this.rig = null;
     }
     const wantScene = opts.scene === false ? 'studio' : spec.scene;
+    sfx.setScene(wantScene);
     if (wantScene !== this.sceneId) {
       this.stage.setBackdrop(buildBackdrop(wantScene));
       this.sceneId = wantScene;

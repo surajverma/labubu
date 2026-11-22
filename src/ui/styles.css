@@ -1217,3 +1217,17 @@ body.reduce-motion .toast {
   border-radius: 50%;
   border: 2px solid rgba(160, 100, 0, 0.45);
 }
+
+/* --- Volume sliders --- */
+.list .item.slider {
+  cursor: default;
+}
+.list .item.slider input[type='range'] {
+  flex: 0 0 46%;
+  height: 32px;
+  accent-color: var(--primary);
+  background: none;
+}
+.list .item.slider input[type='range']:disabled {
+  opacity: 0.4;
+}

@@ -26,6 +26,9 @@ export interface OwnedCharacter {
 export interface Settings {
   sound: boolean;
   music: boolean;
+  /** 0–1; missing in older saves (defaults below). */
+  sfxVolume?: number;
+  musicVolume?: number;
   haptics: boolean;
   notifications: boolean;
   /** Hour (0–23) for the daily reminder. */

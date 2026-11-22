@@ -1,5 +1,13 @@
 # Release notes
 
+## 0.3.6 — Music and sound
+- Every scene now has its own tune: beachy marimba, snowy music-box bells, dreamy space
+  flute, bouncy candy beats, a cozy lullaby and more.
+- New volume sliders for effects and music.
+- Box openings build up with a rising swell and a drum roll for big pulls; fanfares are
+  richer.
+- Music quietly steps back while your buddy listens to you.
+
 ## 0.3.5 — Big moments
 - Box opening is more exciting: the box rumbles in your hand and the lid tears open in a
   shower of paper bits.

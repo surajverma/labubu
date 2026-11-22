@@ -238,10 +238,12 @@ export class HomeScreen implements Screen {
       g.changed('seen');
     }
     this.mimic.voice = this.currentVoice();
+    sfx.hold('mic', 0.1);
     try {
       await this.mimic.start();
     } catch (e) {
       console.warn('mic', e);
+      sfx.hold('mic', null);
       this.app.toast('I need the microphone to listen — allow it in your phone’s settings.');
       return;
     }
@@ -251,6 +253,7 @@ export class HomeScreen implements Screen {
 
   private stopTalk(): void {
     if (this.mimic.state !== 'off') this.mimic.stop();
+    sfx.hold('mic', null);
     this.view.rig?.setTalk(0);
     this.voiceBar.style.display = 'none';
   }

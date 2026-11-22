@@ -151,6 +151,7 @@ export class App {
   applySettings(): void {
     const s = this.game.save.settings;
     sfx.soundOn = s.sound;
+    sfx.setVolumes(s.sfxVolume ?? 1, s.musicVolume ?? 0.8);
     sfx.setMusic(s.music);
     setHapticsEnabled(s.haptics);
     const q: Quality = s.quality === 'auto' ? (s.detectedQuality ?? 'high') : s.quality;
